@@ -94,7 +94,7 @@
       document.getElementById('resultCard').style.display = 'none';
 
       try {
-        var response = await fetch('/check', {
+        var response = await fetch('/api/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ keyword: keyword, domain: domain, competitors: competitors })
@@ -159,4 +159,4 @@
     });
   </script>
 </body>
-</html>
+</html>   
