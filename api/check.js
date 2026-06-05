@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -47,9 +45,9 @@ Write 2 lines about how "${domain}" compares to competitors for this keyword.`
     const answer = data.choices?.[0]?.message?.content || 'No response received';
     const mentioned = answer.toLowerCase().includes(domain.toLowerCase());
 
-    res.json({ keyword, domain, mentioned, ai_response: answer });
+    return res.status(200).json({ keyword, domain, mentioned, ai_response: answer });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
