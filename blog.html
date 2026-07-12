@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog - AEO Tracker | AI Search Optimization Insights</title>
+<meta name="description" content="Learn about Answer Engine Optimization (AEO), AI search visibility, and how to get your brand mentioned by ChatGPT, Gemini, and Perplexity.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:sticky;top:0;z-index:10;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;}
+.logo-mark svg{width:100%;height:100%;display:block;}
+.logo-name{font-size:18px;font-weight:800;color:#0f172a;}
+.logo-name span{color:#065f46;}
+.back-link{color:#065f46;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;}
+
+.hero{background:linear-gradient(135deg,#065f46 0%,#047857 50%,#065f46 100%);padding:54px 24px 46px;text-align:center;position:relative;overflow:hidden;}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.9);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;margin-bottom:14px;}
+.hero h1{color:white;font-size:36px;font-weight:800;margin-bottom:10px;letter-spacing:-1px;}
+.hero h1 span{color:#fbbf24;}
+.hero p{color:rgba(255,255,255,0.78);font-size:14.5px;max-width:540px;margin:0 auto;line-height:1.6;}
+
+.wrap{max-width:960px;margin:0 auto;padding:44px 24px 70px;}
+.cat-bar{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+.cat-chip{background:white;border:1.5px solid #e2e8f0;color:#475569;font-size:12.5px;font-weight:600;padding:7px 15px;border-radius:20px;}
+.cat-chip.active{background:#065f46;border-color:#065f46;color:white;}
+
+.featured{background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);border:1px solid #f1f5f9;margin-bottom:28px;}
+.featured-thumb{height:180px;background:linear-gradient(135deg,#065f46,#059669);display:flex;align-items:center;justify-content:center;position:relative;}
+.featured-thumb i{font-size:56px;color:rgba(255,255,255,0.3);}
+.featured-badge{position:absolute;top:16px;left:16px;background:#f97316;color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:5px 12px;border-radius:20px;}
+.featured-body{padding:26px 28px 28px;}
+
+.post-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.post-card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);border:1px solid #f1f5f9;display:flex;flex-direction:column;}
+.post-thumb{height:110px;display:flex;align-items:center;justify-content:center;}
+.post-thumb i{font-size:38px;color:rgba(255,255,255,0.85);}
+.thumb-1{background:linear-gradient(135deg,#f97316,#fbbf24);}
+.thumb-2{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
+.thumb-3{background:linear-gradient(135deg,#7c3aed,#a78bfa);}
+.post-body-inner{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column;}
+.post-tag{display:inline-block;background:#f0fdf4;color:#065f46;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:4px 10px;border-radius:20px;margin-bottom:11px;width:fit-content;}
+.post-title{font-size:17px;font-weight:700;color:#0f172a;margin-bottom:9px;line-height:1.35;}
+.post-excerpt{font-size:13.5px;color:#64748b;line-height:1.65;margin-bottom:14px;flex:1;}
+.post-meta{font-size:11.5px;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-bottom:12px;}
+.read-more{color:#065f46;font-weight:700;font-size:12.5px;cursor:pointer;background:none;border:none;display:flex;align-items:center;gap:5px;padding:0;}
+.post-full{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;}
+.post-full.open{display:block;}
+.post-full h3{font-size:15px;font-weight:700;color:#065f46;margin:14px 0 7px;}
+.post-full p,.post-full li{font-size:13.5px;line-height:1.7;color:#374151;margin-bottom:9px;}
+.post-full ul{margin-left:18px;}
+
+.footer-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;padding-bottom:36px;}
+.site-footer{background:#0f172a;padding:48px 24px 0;margin-top:16px;}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.footer-logo .logo-mark{width:32px;height:32px;}
+.footer-logo-text{font-size:16px;font-weight:800;color:white;}
+.footer-logo-text span{color:#4ade80;}
+.footer-tagline{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;max-width:280px;}
+.footer-col h4{font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;}
+.footer-col a{display:block;font-size:13.5px;color:rgba(255,255,255,0.55);text-decoration:none;margin-bottom:10px;}
+.footer-col a:hover{color:#4ade80;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.08);text-align:center;padding:18px;font-size:12.5px;color:rgba(255,255,255,0.4);}
+
+@media(max-width:700px){
+  .post-grid{grid-template-columns:1fr;}
+  .navbar{padding:0 16px;}
+  .hero h1{font-size:26px;}
+  .footer-inner{grid-template-columns:1fr 1fr;gap:24px;}
+  .footer-brand{grid-column:span 2;}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#g3)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="g3" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+    <span class="logo-name">AEO <span>Tracker</span></span>
+  </a>
+  <a href="/index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to App</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-pill"><i class="fa-solid fa-book-open"></i> AEO Tracker Blog</div>
+  <h1>AEO <span>Insights</span> & Guides</h1>
+  <p>Practical guides on Answer Engine Optimization, AI search visibility, and getting your brand recommended by ChatGPT, Gemini, and Perplexity.</p>
+</div>
+
+<div class="wrap">
+  <div class="cat-bar">
+    <span class="cat-chip active">All Posts</span>
+    <span class="cat-chip">AEO Basics</span>
+    <span class="cat-chip">Brand Strategy</span>
+    <span class="cat-chip">Local SEO</span>
+    <span class="cat-chip">Trust Signals</span>
+  </div>
+
+  <div class="featured">
+    <div class="featured-thumb"><i class="fa-solid fa-robot"></i><span class="featured-badge">Featured</span></div>
+    <div class="featured-body">
+      <span class="post-tag">AEO Basics</span>
+      <div class="post-title" style="font-size:22px;">What Is Answer Engine Optimization (AEO) and Why It Matters in 2026</div>
+      <div class="post-meta"><i class="fa-regular fa-clock"></i> 6 min read &nbsp;&middot;&nbsp; Updated July 2026</div>
+      <div class="post-excerpt" style="font-size:14.5px;">Traditional SEO focused on ranking in Google's blue links. AEO is the new discipline focused on getting your brand mentioned inside AI-generated answers from ChatGPT, Gemini, and Perplexity.</div>
+      <button class="read-more" onclick="togglePost(1)"><span id="btn1">Read full article</span> <i class="fa-solid fa-chevron-down" id="icon1"></i></button>
+      <div class="post-full" id="post1">
+        <p>Search behavior is shifting. Instead of typing a keyword and scrolling through ten blue links, people are asking AI assistants direct questions and trusting the answer they get back. This shift means visibility inside an AI-generated answer is becoming as valuable as ranking #1 on Google once was.</p>
+        <h3>How AEO differs from traditional SEO</h3>
+        <p>Traditional SEO optimizes for crawlers and ranking algorithms. AEO optimizes for how large language models synthesize an answer from multiple sources. That means clarity, authority, and being cited by trusted sources matter more than keyword density.</p>
+        <h3>Why this matters for your business</h3>
+        <ul>
+          <li>AI answers often skip listing multiple options — being the one brand mentioned carries outsized value.</li>
+          <li>Users increasingly trust AI summaries over clicking through multiple websites.</li>
+          <li>Early movers in AEO are building a visibility advantage before the space becomes competitive.</li>
+        </ul>
+        <p>Tools like AEO Tracker help you measure where you currently stand — whether AI engines mention your brand today, and what competitors are being recommended instead.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="post-grid">
+
+    <div class="post-card">
+      <div class="post-thumb thumb-1"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+      <div class="post-body-inner">
+        <span class="post-tag">Brand Strategy</span>
+        <div class="post-title">Why Your Brand Might Not Be Mentioned by ChatGPT</div>
+        <div class="post-meta"><i class="fa-regular fa-clock"></i> 5 min read</div>
+        <div class="post-excerpt">The most common reasons brands get skipped by AI search engines — and the practical fixes that help.</div>
+        <button class="read-more" onclick="togglePost(2)"><span id="btn2">Read article</span> <i class="fa-solid fa-chevron-down" id="icon2"></i></button>
+        <div class="post-full" id="post2">
+          <h3>Common reasons brands are missing from AI answers</h3>
+          <ul>
+            <li><strong>Low domain authority:</strong> AI models favor sources frequently cited elsewhere on the web.</li>
+            <li><strong>Thin or outdated content:</strong> if your site doesn't clearly answer the question, models skip it.</li>
+            <li><strong>Missing structured information:</strong> clear headings and FAQs help AI extract and cite your content.</li>
+            <li><strong>Weak local signals:</strong> inconsistent NAP details hurt local AI visibility.</li>
+          </ul>
+          <h3>Practical fixes</h3>
+          <p>Start by identifying exactly where you stand — run a visibility check on your target keywords to see who AI currently recommends instead of you. Prioritize the single highest-impact fix before spreading effort across many small changes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-thumb thumb-2"><i class="fa-solid fa-location-dot"></i></div>
+      <div class="post-body-inner">
+        <span class="post-tag">Local SEO</span>
+        <div class="post-title">Local AI Visibility: Winning "Near Me" Searches</div>
+        <div class="post-meta"><i class="fa-regular fa-clock"></i> 4 min read</div>
+        <div class="post-excerpt">What actually influences whether an AI assistant recommends your business for local queries.</div>
+        <button class="read-more" onclick="togglePost(3)"><span id="btn3">Read article</span> <i class="fa-solid fa-chevron-down" id="icon3"></i></button>
+        <div class="post-full" id="post3">
+          <p>When someone asks an AI assistant "best plumber near me," the model draws on a mix of local business listings, review signals, and general search data to form an answer.</p>
+          <h3>Key factors for local AI visibility</h3>
+          <ul>
+            <li>Consistent business name, address, and phone number across your site and directories.</li>
+            <li>A healthy volume of genuine, recent customer reviews.</li>
+            <li>Clear service-area pages mentioning the specific cities you serve.</li>
+            <li>Being mentioned alongside competitors in local roundup articles.</li>
+          </ul>
+          <p>Benchmarking yourself against nearby competitors for your core service keywords is the fastest way to see where the gaps are.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-thumb thumb-3"><i class="fa-solid fa-link"></i></div>
+      <div class="post-body-inner">
+        <span class="post-tag">Trust Signals</span>
+        <div class="post-title">Citations Matter More Than Ever</div>
+        <div class="post-meta"><i class="fa-regular fa-clock"></i> 5 min read</div>
+        <div class="post-excerpt">How citation authority works and why it's becoming a core AI ranking signal.</div>
+        <button class="read-more" onclick="togglePost(4)"><span id="btn4">Read article</span> <i class="fa-solid fa-chevron-down" id="icon4"></i></button>
+        <div class="post-full" id="post4">
+          <p>Just as backlinks were a core trust signal for traditional search engines, citations — being referenced by other reputable sources — are becoming a core trust signal for AI systems.</p>
+          <h3>How to build citation authority</h3>
+          <ul>
+            <li>Get featured in industry roundups, comparison articles, and review sites relevant to your niche.</li>
+            <li>Publish original data, research, or expert commentary other sites want to reference.</li>
+            <li>Maintain an accurate, detailed presence on major directories relevant to your industry.</li>
+          </ul>
+          <p>Tracking your citation score over time helps you understand whether your authority-building efforts are translating into AI visibility.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#gf)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="gf" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+        <span class="footer-logo-text">AEO <span>Tracker</span></span>
+      </div>
+      <p class="footer-tagline">Real-time AI search visibility, brand sentiment, and citation tracking for modern brands.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="/index.html">AI Visibility Check</a>
+      <a href="/index.html">Brand Sentiment</a>
+      <a href="/index.html">Citation Score</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="/blog.html">Blog</a>
+      <a href="/index.html">Dashboard</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms &amp; Conditions</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 AEO Tracker. All rights reserved.</div>
+</footer>
+
+<script>
+function togglePost(n) {
+  var body = document.getElementById('post' + n);
+  var icon = document.getElementById('icon' + n);
+  var btn = document.getElementById('btn' + n);
+  var isOpen = body.classList.toggle('open');
+  icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  btn.textContent = isOpen ? 'Show less' : (n == 1 ? 'Read full article' : 'Read article');
+}
+</script>
+</body>
+</html>
