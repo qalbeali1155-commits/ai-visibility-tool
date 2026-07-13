@@ -1,0 +1,28 @@
+{
+  "name": "ai-visibility-tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fix.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qalbeali1155-commits/ai-visibility-tool.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/qalbeali1155-commits/ai-visibility-tool/issues"
+  },
+  "homepage": "https://github.com/qalbeali1155-commits/ai-visibility-tool#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
