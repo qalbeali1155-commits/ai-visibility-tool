@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+    const SUPABASE_URL = "https://wdsdvumxzquyutyjukif.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_MuWa2m4uHAnM6WIoDVtR1g_KmAyLrYT";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY );
+
+    
+    (async () => {
+        const { data } = await supabaseClient.auth.getSession();
+        if (data.session) {
+            window.location.href = 'index.html';
+        }
+    })();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEO Tracker - Login</title>
