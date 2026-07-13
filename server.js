@@ -43,8 +43,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html')); 
 });
 
-app.get('/index.html', (req, res) => { 
-    res.sendFile(path.join(__dirname, 'index.html')); 
+app.get('/app.html', (req, res) => { 
+    res.sendFile(path.join(__dirname, 'app.html')); 
 });
 
 // AB STATIC FILES SERVE KAREIN (Taki ye default index.html na uthaye)
