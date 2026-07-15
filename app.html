@@ -512,9 +512,15 @@ async function runVisibility(){
     var visM=t.match(/VISIBILITY STATUS:([\s\S]*?)TOP 5/);
     var recM=t.match(/TOP 5 RECOMMENDATIONS:([\s\S]*?)VISIBILITY SCORE/);
     var scM=t.match(/VISIBILITY SCORE:([\s\S]*?)COMPETITOR INSIGHT/);
-    var insM=t.match(/COMPETITOR INSIGHT:([\s\S]*?)$/);
+    var insM=t.match(/COMPETITOR INSIGHT:([\s\S]*?)KEY ISSUES/);
+    var issM=t.match(/KEY ISSUES:([\s\S]*?)HOW TO IMPROVE VISIBILITY/);
+    var impM=t.match(/HOW TO IMPROVE VISIBILITY:([\s\S]*?)$/);
     var recs="";
     if(recM){recM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){recs+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#065f46");});}
+    var issues="";
+    if(issM){issM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){issues+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#dc2626");});}
+    var fixes="";
+    if(impM){impM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){fixes+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#065f46");});}
     var scores="";var myScore=null;var firstLineScore=null;
     if(scM){scM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,idx){var m=l.match(/(.+):\s*(\d+)%/);if(m){var clean=dom.toLowerCase().replace(/^https?:\/\//,"").replace(/\/+$/,"").replace(/^www\./,"");var labelClean=m[1].toLowerCase().replace(/^https?:\/\//,"").replace(/\/+$/,"").replace(/^www\./,"").replace(/[*_]/g,"").trim();var isYou=labelClean.indexOf(clean)>=0||clean.indexOf(labelClean)>=0;var sc=parseInt(m[2]);if(idx===0)firstLineScore=sc;if(isYou&&myScore===null)myScore=sc;scores+=sRow(m[1].trim(),sc,isYou?"#065f46":"#f97316",isYou);}});}
     if(myScore===null&&firstLineScore!==null)myScore=firstLineScore;
@@ -535,6 +541,8 @@ async function runVisibility(){
       (recs?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-trophy"></i> Top 5 AI Recommendations</div>'+recs+'</div>':'')+
       (scores?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Visibility Scores</div>'+scores+'</div>':'')+
       (insM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Competitor Insight</div><div class="insight">'+insM[1].trim()+'</div></div>':'')+
+      (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
+      (fixes?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fixes+'</div>':'')+
       '</div>';
     saveToHistory('AI Visibility', kw, dom, null, mentioned ? 'Mentioned' : 'Not Mentioned', t);
   }catch(e){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
@@ -555,7 +563,8 @@ async function runSentiment(){
     var sentM=t.match(/SENTIMENT:\s*(\w+)/);
     var scM=t.match(/SENTIMENT SCORE:\s*(\d+)%/);
     var wordsM=t.match(/BRAND WORDS:([\s\S]*?)BRAND DESCRIPTION/);
-    var descM=t.match(/BRAND DESCRIPTION:([\s\S]*?)IMPROVEMENT TIPS/);
+    var descM=t.match(/BRAND DESCRIPTION:([\s\S]*?)KEY ISSUES/);
+    var issM=t.match(/KEY ISSUES:([\s\S]*?)IMPROVEMENT TIPS/);
     var tipsM=t.match(/IMPROVEMENT TIPS:([\s\S]*?)$/);
     var sent=sentM?sentM[1]:"Neutral";
     var sc=scM?parseInt(scM[1]):50;
@@ -563,6 +572,8 @@ async function runSentiment(){
     var sColor=sent==="Positive"?"#15803d":sent==="Negative"?"#dc2626":"#a16207";
     var wHtml="";
     if(wordsM){wordsM[1].trim().split(",").forEach(function(w){if(w.trim())wHtml+='<span class="tag">'+w.trim()+'</span>';});}
+    var issues="";
+    if(issM){issM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){issues+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#dc2626");});}
     var tHtml="";
     if(tipsM){tipsM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){tHtml+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#065f46");});}
     var trust=Math.min(sc+8,100),concern=Math.max(100-sc-15,0),neutral2=Math.max(100-trust-concern,0);
@@ -585,6 +596,7 @@ async function runSentiment(){
       '</div>'+
       (wHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-tags"></i> Brand Words</div><div class="tags">'+wHtml+'</div></div>':'')+
       (descM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Brand Description</div><div class="insight">'+descM[1].trim()+'</div></div>':'')+
+      (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Improvement Tips</div>'+tHtml+'</div>':'')+
       '</div>';
     setTimeout(function(){donut("sChart",["Trust","Concern","Neutral"],[trust,concern,neutral2],["#065f46","#ef4444","#fbbf24"]);},100);
@@ -606,8 +618,8 @@ async function runWhyNotRanking(){
     var d=await r.json();
     var t=d.ai_response||"";
     var stM=t.match(/RANKING STATUS:\s*(.+)/);
-    var rnM=t.match(/TOP REASONS NOT RANKING:([\s\S]*?)FIX SUGGESTIONS/);
-    var fxM=t.match(/FIX SUGGESTIONS:([\s\S]*?)PRIORITY ACTION/);
+    var rnM=t.match(/KEY ISSUES:([\s\S]*?)HOW TO IMPROVE VISIBILITY/);
+    var fxM=t.match(/HOW TO IMPROVE VISIBILITY:([\s\S]*?)PRIORITY ACTION/);
     var prM=t.match(/PRIORITY ACTION:([\s\S]*?)TIMELINE/);
     var tlM=t.match(/TIMELINE:\s*(.+)/);
     var status=stM?stM[1].trim():"Unknown";
@@ -629,8 +641,8 @@ async function runWhyNotRanking(){
       '<div><div class="report-title">Gap Analysis Report</div><div class="report-sub">'+dom+' &nbsp;&middot;&nbsp; "'+kw+'"</div></div>'+
       '<div class="report-badge"><span class="badge '+bClass+'">'+status+'</span></div>'+
       '</div>'+
-      (rHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Reasons Not Ranking</div>'+rHtml+'</div>':'')+
-      (fHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> Fix Suggestions</div>'+fHtml+'</div>':'')+
+      (rHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+rHtml+'</div>':'')+
+      (fHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fHtml+'</div>':'')+
       (prM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-star"></i> Priority Action</div><div class="priority"><div class="p-label">Do This First</div><div class="p-text">'+prM[1].trim()+'</div></div></div>':'')+
       '</div>';
     saveToHistory('Why Not Ranking', kw, dom, null, status, t);
@@ -653,7 +665,8 @@ async function runLocal(){
     var t=d.ai_response||"";
     var stM=t.match(/LOCAL VISIBILITY STATUS:\s*(\w+)/);
     var scM=t.match(/LOCAL SCORE:\s*(\d+)%/);
-    var cM=t.match(/TOP LOCAL COMPETITORS:([\s\S]*?)LOCAL SEO TIPS/);
+    var cM=t.match(/TOP LOCAL COMPETITORS:([\s\S]*?)KEY ISSUES/);
+    var issM=t.match(/KEY ISSUES:([\s\S]*?)LOCAL SEO TIPS/);
     var tpM=t.match(/LOCAL SEO TIPS:([\s\S]*?)LOCAL INSIGHT/);
     var inM=t.match(/LOCAL INSIGHT:([\s\S]*?)$/);
     var status=stM?stM[1]:"Medium";
@@ -661,6 +674,8 @@ async function runLocal(){
     var bClass=status==="High"?"b-green":status==="Low"?"b-red":"b-yellow";
     var cHtml="";
     if(cM){cM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){cHtml+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#f97316");});}
+    var issues="";
+    if(issM){issM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){issues+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#dc2626");});}
     var tHtml="";
     if(tpM){tpM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){tHtml+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#065f46");});}
     document.getElementById("result-local").innerHTML=
@@ -678,6 +693,7 @@ async function runLocal(){
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Local Score</div>'+sRow(dom,sc,"#065f46",true)+'</div>'+
       (cHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-users"></i> Top Local Competitors</div>'+cHtml+'</div>':'')+
+      (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Local SEO Tips</div>'+tHtml+'</div>':'')+
       (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Local Insight</div><div class="insight">'+inM[1].trim()+'</div></div>':'')+
       '</div>';
@@ -701,7 +717,8 @@ async function runCitation(){
     var scM=t.match(/CITATION SCORE:\s*(\d+)%/);
     var frM=t.match(/CITATION FREQUENCY:\s*(.+)/);
     var stM=t.match(/CITATION STRENGTH:\s*(.+)/);
-    var ctM=t.match(/CITED FOR:([\s\S]*?)HOW TO IMPROVE/);
+    var ctM=t.match(/CITED FOR:([\s\S]*?)KEY ISSUES/);
+    var issM=t.match(/KEY ISSUES:([\s\S]*?)HOW TO IMPROVE CITATIONS/);
     var imM=t.match(/HOW TO IMPROVE CITATIONS:([\s\S]*?)CITATION INSIGHT/);
     var inM=t.match(/CITATION INSIGHT:([\s\S]*?)$/);
     var sc=scM?parseInt(scM[1]):0;
@@ -710,6 +727,8 @@ async function runCitation(){
     var sBadge=strength==="Authoritative"?"b-green":strength==="Strong"?"b-blue":strength==="Moderate"?"b-yellow":"b-red";
     var ctHtml="";
     if(ctM){ctM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){ctHtml+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#1d4ed8");});}
+    var issues="";
+    if(issM){issM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){issues+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#dc2626");});}
     var imHtml="";
     if(imM){imM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){imHtml+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#f97316");});}
     document.getElementById("result-citation").innerHTML=
@@ -727,6 +746,7 @@ async function runCitation(){
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Citation Score</div>'+sRow(dom,sc,"#1d4ed8",true)+'</div>'+
       (ctHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-bookmark"></i> Cited For</div>'+ctHtml+'</div>':'')+
+      (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (imHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-arrow-trend-up"></i> How to Improve</div>'+imHtml+'</div>':'')+
       (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Citation Insight</div><div class="insight">'+inM[1].trim()+'</div></div>':'')+
       '</div>';
