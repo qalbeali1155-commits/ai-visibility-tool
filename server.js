@@ -18,12 +18,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- Functions (Groq & Serper) ---
 async function callGroq(prompt) {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }] }  )
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }] })
     });
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "Analysis failed";
@@ -33,24 +32,20 @@ async function callSerper(query, type = 'search') {
     const response = await fetch(`https://google.serper.dev/${type}`, {
         method: 'POST',
         headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query }  )
+        body: JSON.stringify({ q: query })
     });
     return await response.json();
 }
 
-// --- Routes (Login Page First) ---
-app.get('/', (req, res) => { 
-    res.sendFile(path.join(__dirname, 'login.html')); 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-app.get('/app.html', (req, res) => { 
-    res.sendFile(path.join(__dirname, 'app.html')); 
+app.get('/app.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'app.html'));
 });
 
-// AB STATIC FILES SERVE KAREIN (Taki ye default index.html na uthaye)
 app.use(express.static(__dirname));
-
-// --- API Endpoints ---
 
 // 1. AI Visibility
 app.post('/api/visibility', async (req, res) => {
@@ -59,7 +54,7 @@ app.post('/api/visibility', async (req, res) => {
         const searchData = await callSerper(keyword);
         const results = searchData.organic?.slice(0, 10).map((r, i) => `Rank ${i+1}: ${r.link} - ${r.title}`).join('\n') || 'No results';
         const competitorScores = competitors ? competitors.split(',').map(c => `${c.trim()}: [0-100]%`).join('\n') : '';
-        const prompt = `You are an AEO Expert. Analyze AI Search visibility for "${domain}" for keyword "${keyword}".
+        const prompt = `You are an AEO (Answer Engine Optimization) expert consultant. Analyze AI Search visibility for "${domain}" for keyword "${keyword}".
 Real Google Results:\n${results}\nCompetitors: ${competitors || 'none'}
 
 Respond in this EXACT format:
@@ -78,9 +73,19 @@ ${domain}: [0-100]%
 ${competitorScores}
 
 COMPETITOR INSIGHT:
-[2 lines comparing domain with competitors based on real data]`;
+[2 lines comparing domain with competitors based on real data]
+
+KEY ISSUES:
+1. [specific reason this domain is weak or missing in AI/Google visibility for this keyword]
+2. [specific reason]
+3. [specific reason]
+
+HOW TO IMPROVE VISIBILITY:
+1. [specific, actionable SEO/AEO fix tied to the issues above]
+2. [specific, actionable SEO/AEO fix]
+3. [specific, actionable SEO/AEO fix]`;
         const ai_response = await callGroq(prompt);
-        const mentioned = results.toLowerCase().includes(domain.toLowerCase().replace('https://','' ).replace('http://','' ).replace('www.',''));
+        const mentioned = results.toLowerCase().includes(domain.toLowerCase().replace('https://','').replace('http://','').replace('www.',''));
         res.json({ keyword, domain, mentioned, ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -90,15 +95,24 @@ app.post('/api/sentiment', async (req, res) => {
     const { domain } = req.body;
     try {
         const searchData = await callSerper(`${domain} reviews feedback`);
-        const snippets = searchData.organic?.map(res => res.snippet).join('\n');
-        const prompt = `Analyze brand reputation for "${domain}".
-        Data:\n${snippets}\n
-        Provide:
-        1. SENTIMENT: (Positive/Neutral/Negative)
-        2. EMOTION BREAKDOWN: (Trust, Concern, Satisfaction levels)
-        3. TOP QUOTES: 2 representative snippets.
-        4. SENTIMENT SCORE: [0-100]%
-        5. REPUTATION FIX: 2 steps to improve public perception.`;
+        const snippets = searchData.organic?.map(r => r.snippet).filter(Boolean).join('\n') || 'No data';
+        const prompt = `You are a brand reputation and AEO expert. Analyze brand sentiment for "${domain}" from real Google snippets:\n${snippets}
+
+Respond in this EXACT format:
+SENTIMENT: [Positive/Neutral/Negative]
+SENTIMENT SCORE: [0-100]%
+BRAND WORDS: [word1, word2, word3, word4, word5]
+BRAND DESCRIPTION: [2 lines]
+
+KEY ISSUES:
+1. [specific reputation weakness or gap found]
+2. [specific reputation weakness or gap]
+3. [specific reputation weakness or gap]
+
+IMPROVEMENT TIPS:
+1. [specific, actionable fix tied to the issues above]
+2. [specific, actionable fix]
+3. [specific, actionable fix]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -109,15 +123,26 @@ app.post('/api/whynotranking', async (req, res) => {
     const { keyword, domain } = req.body;
     try {
         const searchData = await callSerper(keyword);
-        const top = searchData.organic?.slice(0, 3).map(res => res.link).join('\n');
-        const prompt = `Gap Analysis for "${domain}" on keyword "${keyword}".
-        Top Ranking Sites:\n${top}\n
-        Provide:
-        1. RANKING STATUS: (Current position or 'Not Found')
-        2. CONTENT GAP: What topics are competitors covering that "${domain}" is missing?
-        3. TECHNICAL GAP: (Speed, Mobile-friendliness, Schema).
-        4. KEYWORD DIFFICULTY: (Easy/Medium/Hard) + Reason.
-        5. PRIORITY FIX: The #1 thing to change today.`;
+        const top = searchData.organic?.slice(0, 5).map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
+        const prompt = `You are an SEO/AEO gap-analysis expert. Analyze why "${domain}" is not ranking for "${keyword}".
+Top Google Results:\n${top}
+
+Respond in this EXACT format:
+RANKING STATUS: [Not Ranking/Partially Ranking/Ranking]
+
+KEY ISSUES:
+1. [specific reason]
+2. [specific reason]
+3. [specific reason]
+
+HOW TO IMPROVE VISIBILITY:
+1. [specific, actionable fix]
+2. [specific, actionable fix]
+3. [specific, actionable fix]
+4. [specific, actionable fix]
+
+PRIORITY ACTION: [single most important action to take first]
+TIMELINE: [estimated time to see results]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -128,15 +153,29 @@ app.post('/api/local', async (req, res) => {
     const { keyword, domain, city } = req.body;
     try {
         const searchData = await callSerper(`${keyword} in ${city}`, 'places');
-        const places = searchData.places?.map(p => `${p.title} (${p.rating} stars)`).join('\n');
-        const prompt = `Local AI Visibility for "${domain}" in "${city}".
-        Local Listings:\n${places}\n
-        Provide:
-        1. MAP PRESENCE: (Strong/Weak/None).
-        2. NAP CONSISTENCY: (Consistent/Inconsistent).
-        3. LOCAL SCORE: [0-100]%.
-        4. TOP LOCAL COMPETITORS: List 3.
-        5. LOCAL INSIGHT: One tip to dominate local AI search.`;
+        const places = searchData.places?.map(p => `${p.title} - ${p.address} (${p.rating || 'N/A'} stars)`).join('\n') || 'No local data';
+        const prompt = `You are a Local SEO/AEO expert. Analyze local AI visibility for "${domain}" in "${city}" for "${keyword}".
+Real Local Google Results:\n${places}
+
+Respond in this EXACT format:
+LOCAL VISIBILITY STATUS: [High/Medium/Low]
+LOCAL SCORE: [0-100]%
+TOP LOCAL COMPETITORS:
+1. [competitor] - [reason]
+2. [competitor] - [reason]
+3. [competitor] - [reason]
+
+KEY ISSUES:
+1. [specific local visibility weakness]
+2. [specific local visibility weakness]
+3. [specific local visibility weakness]
+
+LOCAL SEO TIPS:
+1. [specific, actionable fix]
+2. [specific, actionable fix]
+3. [specific, actionable fix]
+
+LOCAL INSIGHT: [2 lines]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -146,23 +185,40 @@ app.post('/api/local', async (req, res) => {
 app.post('/api/citation', async (req, res) => {
     const { domain, keyword } = req.body;
     try {
-        const searchData = await callSerper(`"${domain}" ${keyword} news wikipedia`);
-        const prompt = `Authority Analysis for "${domain}" regarding "${keyword}".
-        Provide:
-        1. CITATION SCORE: [0-100]%.
-        2. AUTHORITY BREAKDOWN: (High/Medium/Low authority mentions).
-        3. MENTION CONTEXT: (Educational, Commercial, News).
-        4. TOP SOURCES: 3 domains citing you.
-        5. CITATION HEALTH: (Healthy/Needs Growth).`;
+        const searchData = await callSerper(`"${domain}" ${keyword} mentioned cited`);
+        const results = searchData.organic?.map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
+        const prompt = `You are an authority/citation-building AEO expert. Analyze citation authority for "${domain}" regarding "${keyword}".
+Real Google Data:\n${results}
+
+Respond in this EXACT format:
+CITATION SCORE: [0-100]%
+CITATION FREQUENCY: [Never/Rarely/Sometimes/Often/Frequently]
+CITATION STRENGTH: [Weak/Moderate/Strong/Authoritative]
+CITED FOR:
+1. [topic]
+2. [topic]
+3. [topic]
+
+KEY ISSUES:
+1. [specific reason citation authority is weak]
+2. [specific reason]
+3. [specific reason]
+
+HOW TO IMPROVE CITATIONS:
+1. [specific, actionable fix]
+2. [specific, actionable fix]
+3. [specific, actionable fix]
+
+CITATION INSIGHT: [2 lines]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
+
 // Save search to history
 app.post('/api/history', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Not logged in' });
-
   const { tool_type, keyword, domain, city, result_summary, full_response } = req.body;
   const { error } = await supabaseAdmin.from('search_history').insert({
     user_id: user.id, tool_type, keyword, domain, city, result_summary, full_response
@@ -175,14 +231,12 @@ app.post('/api/history', async (req, res) => {
 app.get('/api/history', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Not logged in' });
-
   const { data, error } = await supabaseAdmin
     .from('search_history')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(50);
-
   if (error) return res.status(500).json({ error: error.message });
   res.json({ history: data });
 });
@@ -191,16 +245,15 @@ app.get('/api/history', async (req, res) => {
 app.delete('/api/history/:id', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Not logged in' });
-
   const { error } = await supabaseAdmin
     .from('search_history')
     .delete()
     .eq('id', req.params.id)
     .eq('user_id', user.id);
-
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Advanced AEO Suite running on port ${PORT}`));
 module.exports = app;

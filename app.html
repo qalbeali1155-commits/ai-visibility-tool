@@ -515,8 +515,9 @@ async function runVisibility(){
     var insM=t.match(/COMPETITOR INSIGHT:([\s\S]*?)$/);
     var recs="";
     if(recM){recM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,i){recs+=tip(l.replace(/^\d+\.\s*/,""),i+1,"#065f46");});}
-    var scores="";var myScore=null;
-    if(scM){scM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,idx){var m=l.match(/(.+):\s*(\d+)%/);if(m){var clean=dom.toLowerCase().replace(/https?:\/\//,"").replace(/\//,"").replace("www.","");var isYou=m[1].toLowerCase().includes(clean);var sc=parseInt(m[2]);if(isYou&&myScore===null)myScore=sc;scores+=sRow(m[1].trim(),sc,isYou?"#065f46":"#f97316",isYou);}});}
+    var scores="";var myScore=null;var firstLineScore=null;
+    if(scM){scM[1].trim().split("\n").filter(function(l){return l.trim();}).forEach(function(l,idx){var m=l.match(/(.+):\s*(\d+)%/);if(m){var clean=dom.toLowerCase().replace(/^https?:\/\//,"").replace(/\/+$/,"").replace(/^www\./,"");var labelClean=m[1].toLowerCase().replace(/^https?:\/\//,"").replace(/\/+$/,"").replace(/^www\./,"").replace(/[*_]/g,"").trim();var isYou=labelClean.indexOf(clean)>=0||clean.indexOf(labelClean)>=0;var sc=parseInt(m[2]);if(idx===0)firstLineScore=sc;if(isYou&&myScore===null)myScore=sc;scores+=sRow(m[1].trim(),sc,isYou?"#065f46":"#f97316",isYou);}});}
+    if(myScore===null&&firstLineScore!==null)myScore=firstLineScore;
     document.getElementById("result-visibility").innerHTML=
       '<div class="kpi-grid">'+
       '<div class="kpi"><div class="kpi-icon" style="background:#f0fdf4;"><i class="fa-solid fa-bullseye" style="color:#065f46;font-size:18px;"></i></div><div class="kpi-val">'+(mentioned?"Yes":"No")+'</div><div class="kpi-label">AI Mentioned</div></div>'+
