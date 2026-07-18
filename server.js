@@ -215,7 +215,66 @@ CITATION INSIGHT: [2 lines]`;
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// Save search to history
+async function geocodeAddress(address) {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`, {
+        headers: { 'User-Agent': 'AEO-Tracker/1.0' }
+    });
+    const data = await response.json();
+    if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    return null;
+}
+
+// 6. GMB Geo-Grid Rank Tracker (business name based, selectable radius, competitors)
+app.post('/api/geo-grid', async (req, res) => {
+    const { businessName, keyword, location, radiusKm } = req.body;
+    try {
+        const center = await geocodeAddress(location);
+        if (!center) return res.status(400).json({ error: 'Could not find that location. Try a more specific address or city name.' });
+
+        const radius = Math.min(Math.max(parseFloat(radiusKm) || 5, 1), 10);
+        const stepDeg = radius / 111;
+        const points = [];
+        for (let row = -1; row <= 1; row++) {
+            for (let col = -1; col <= 1; col++) {
+                points.push({ lat: center.lat + row * stepDeg, lng: center.lng + col * stepDeg });
+            }
+        }
+
+        const nameLower = businessName.toLowerCase().trim();
+
+        const results = [];
+        for (const p of points) {
+            try {
+                const searchResponse = await fetch('https://google.serper.dev/places', {
+                    method: 'POST',
+                    headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: keyword, ll: `@${p.lat},${p.lng},14z` })
+                });
+                const data = await searchResponse.json();
+                const places = data.places || [];
+                let rank = null;
+                places.forEach((pl, idx) => {
+                    const title = (pl.title || '').toLowerCase();
+                    if (rank === null && title.includes(nameLower)) rank = idx + 1;
+                });
+                const competitors = places
+                    .filter(pl => !(pl.title || '').toLowerCase().includes(nameLower))
+                    .slice(0, 5)
+                    .map(pl => ({ name: pl.title, rating: pl.rating || null }));
+                results.push({ lat: p.lat, lng: p.lng, rank, competitors, totalFound: places.length });
+            } catch (e) {
+                results.push({ lat: p.lat, lng: p.lng, rank: null, competitors: [], totalFound: 0 });
+            }
+        }
+
+        const allCompetitorNames = new Set();
+        results.forEach(r => r.competitors.forEach(c => allCompetitorNames.add(c.name)));
+
+        res.json({ center, points: results, businessName, keyword, radiusKm: radius, uniqueCompetitors: allCompetitorNames.size });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+
 app.post('/api/history', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Not logged in' });
