@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - AEO Tracker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;}
+.logo-mark svg{width:100%;height:100%;display:block;}
+.logo-name{font-size:18px;font-weight:800;color:#0f172a;}
+.logo-name span{color:#065f46;}
+.back-link{color:#065f46;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.wrap{max-width:1000px;margin:0 auto;padding:36px 24px 60px;}
+h1{font-size:24px;font-weight:800;margin-bottom:6px;}
+.sub{color:#64748b;font-size:13px;margin-bottom:24px;}
+.table-wrap{background:white;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);border:1px solid #f1f5f9;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;padding:14px 16px;background:#f8fafc;color:#64748b;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #f1f5f9;}
+td{padding:12px 16px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.plan-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
+.plan-free{background:#f1f5f9;color:#64748b;}
+.plan-client{background:#dbeafe;color:#1d4ed8;}
+.plan-paid{background:#dcfce7;color:#15803d;}
+select,input[type=number]{padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;}
+.save-btn{background:#065f46;color:white;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+.save-btn:hover{background:#047857;}
+.admin-badge{background:#fef9c3;color:#a16207;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-left:6px;}
+.usage-cell{font-weight:700;}
+.loading-msg,.denied-msg{text-align:center;padding:60px 20px;color:#64748b;}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/app.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#ga)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="ga" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+    <span class="logo-name">AEO <span>Tracker</span></span>
+  </a>
+  <a href="/app.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to App</a>
+</nav>
+
+<div class="wrap">
+  <h1><i class="fa-solid fa-user-shield" style="color:#065f46;margin-right:8px;"></i>Admin Panel</h1>
+  <p class="sub">Manage user plans and daily search limits.</p>
+  <div id="content"><div class="loading-msg">Loading...</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://wdsdvumxzquyutyjukif.supabase.co";
+const SUPABASE_KEY = "sb_publishable_MuWa2m4uHAnM6WIoDVtR1g_KmAyLrYT";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function getToken(){
+  const { data } = await supabaseClient.auth.getSession();
+  if(!data.session){ window.location.href='/'; return null; }
+  return data.session.access_token;
+}
+
+async function loadUsers(){
+  const token = await getToken();
+  if(!token) return;
+  try{
+    const res = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await res.json();
+    if(!res.ok){
+      document.getElementById('content').innerHTML = '<div class="denied-msg"><i class="fa-solid fa-lock" style="font-size:28px;display:block;margin-bottom:10px;"></i>' + (data.error || 'Access denied') + '</div>';
+      return;
+    }
+    renderTable(data.users);
+  }catch(e){
+    document.getElementById('content').innerHTML = '<div class="denied-msg">Could not load users.</div>';
+  }
+}
+
+function renderTable(users){
+  var rows = users.map(function(u, i){
+    var planClass = u.plan === 'paid' ? 'plan-paid' : (u.plan === 'client' ? 'plan-client' : 'plan-free');
+    return '<tr>' +
+      '<td>' + u.email + (u.is_admin ? '<span class="admin-badge">ADMIN</span>' : '') + '</td>' +
+      '<td><span class="plan-badge ' + planClass + '">' + u.plan + '</span></td>' +
+      '<td class="usage-cell">' + u.used_today + ' / ' + (u.plan === 'paid' || u.is_admin ? '&#8734;' : u.daily_limit) + '</td>' +
+      '<td>' +
+        '<select id="plan-' + i + '">' +
+          '<option value="free"' + (u.plan==='free'?' selected':'') + '>Free (5/day)</option>' +
+          '<option value="client"' + (u.plan==='client'?' selected':'') + '>Client (20/day)</option>' +
+          '<option value="paid"' + (u.plan==='paid'?' selected':'') + '>Paid (Unlimited)</option>' +
+        '</select>' +
+      '</td>' +
+      '<td><button class="save-btn" onclick="saveUser(\'' + u.user_id + '\', ' + i + ')">Save</button></td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('content').innerHTML =
+    '<div class="table-wrap"><table>' +
+    '<tr><th>Email</th><th>Plan</th><th>Used Today</th><th>Change Plan</th><th></th></tr>' +
+    rows +
+    '</table></div>';
+}
+
+async function saveUser(userId, idx){
+  const token = await getToken();
+  const plan = document.getElementById('plan-' + idx).value;
+  try{
+    const res = await fetch('/api/admin/update-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ target_user_id: userId, plan: plan })
+    });
+    if(res.ok){
+      loadUsers();
+    } else {
+      alert('Could not update user');
+    }
+  }catch(e){ alert('Error: ' + e.message); }
+}
+
+loadUsers();
+</script>
+</body>
+</html>

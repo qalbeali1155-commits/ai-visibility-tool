@@ -14,6 +14,39 @@ async function getUserFromToken(req) {
   return data.user;
 }
 
+const PLAN_LIMITS = { free: 5, client: 20, paid: null };
+
+async function getOrCreateAccess(userId, email) {
+  const { data: existing } = await supabaseAdmin.from('user_access').select('*').eq('user_id', userId).maybeSingle();
+  if (existing) return existing;
+  const { data: created, error } = await supabaseAdmin.from('user_access').insert({
+    user_id: userId, email, plan: 'free', daily_limit: PLAN_LIMITS.free, is_admin: false
+  }).select().maybeSingle();
+  if (error) return { user_id: userId, email, plan: 'free', daily_limit: PLAN_LIMITS.free, is_admin: false };
+  return created;
+}
+
+async function getTodayUsageCount(userId) {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { count } = await supabaseAdmin.from('search_history').select('*', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', startOfDay.toISOString());
+  return count || 0;
+}
+
+async function enforceAccess(req, res) {
+  const user = await getUserFromToken(req);
+  if (!user) { res.status(401).json({ error: 'Not logged in' }); return null; }
+  const access = await getOrCreateAccess(user.id, user.email);
+  if (access.is_admin || access.plan === 'paid') return user;
+  const limit = access.daily_limit;
+  const used = await getTodayUsageCount(user.id);
+  if (used >= limit) {
+    res.status(403).json({ error: `Daily limit reached (${used}/${limit} on the ${access.plan} plan). Try again tomorrow, or ask about upgrading your plan.` });
+    return null;
+  }
+  return user;
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -49,6 +82,8 @@ app.use(express.static(__dirname));
 
 // 1. AI Visibility
 app.post('/api/visibility', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { keyword, domain, competitors } = req.body;
     try {
         const searchData = await callSerper(keyword);
@@ -92,6 +127,8 @@ HOW TO IMPROVE VISIBILITY:
 
 // 2. Brand Sentiment
 app.post('/api/sentiment', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { domain } = req.body;
     try {
         const searchData = await callSerper(`${domain} reviews feedback`);
@@ -120,6 +157,8 @@ IMPROVEMENT TIPS:
 
 // 3. Why Not Ranking
 app.post('/api/whynotranking', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { keyword, domain } = req.body;
     try {
         const searchData = await callSerper(keyword);
@@ -150,6 +189,8 @@ TIMELINE: [estimated time to see results]`;
 
 // 4. Local AI
 app.post('/api/local', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { keyword, domain, city } = req.body;
     try {
         const searchData = await callSerper(`${keyword} in ${city}`, 'places');
@@ -183,6 +224,8 @@ LOCAL INSIGHT: [2 lines]`;
 
 // 5. Citation Score
 app.post('/api/citation', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { domain, keyword } = req.body;
     try {
         const searchData = await callSerper(`"${domain}" ${keyword} mentioned cited`);
@@ -226,6 +269,8 @@ async function geocodeAddress(address) {
 
 // 6. GMB Geo-Grid Rank Tracker (business name based, selectable radius, competitors)
 app.post('/api/geo-grid', async (req, res) => {
+    const user = await enforceAccess(req, res);
+    if (!user) return;
     const { businessName, keyword, location, radiusKm } = req.body;
     try {
         const center = await geocodeAddress(location);
@@ -274,6 +319,47 @@ app.post('/api/geo-grid', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// Check current user's access/plan/usage
+app.get('/api/check-access', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Not logged in' });
+  const access = await getOrCreateAccess(user.id, user.email);
+  const used = await getTodayUsageCount(user.id);
+  res.json({
+    plan: access.plan,
+    daily_limit: access.daily_limit,
+    is_admin: access.is_admin,
+    used_today: used,
+    unlimited: access.is_admin || access.plan === 'paid'
+  });
+});
+
+// Admin: list all users
+app.get('/api/admin/users', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Not logged in' });
+  const access = await getOrCreateAccess(user.id, user.email);
+  if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+  const { data, error } = await supabaseAdmin.from('user_access').select('*').order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  const withUsage = await Promise.all(data.map(async u => ({ ...u, used_today: await getTodayUsageCount(u.user_id) })));
+  res.json({ users: withUsage });
+});
+
+// Admin: update a user's plan / limit / admin flag
+app.post('/api/admin/update-user', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Not logged in' });
+  const access = await getOrCreateAccess(user.id, user.email);
+  if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+  const { target_user_id, plan, daily_limit } = req.body;
+  const updates = {};
+  if (plan) { updates.plan = plan; updates.daily_limit = daily_limit !== undefined ? parseInt(daily_limit) : PLAN_LIMITS[plan]; }
+  else if (daily_limit !== undefined) { updates.daily_limit = parseInt(daily_limit); }
+  const { error } = await supabaseAdmin.from('user_access').update(updates).eq('user_id', target_user_id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
 
 app.post('/api/history', async (req, res) => {
   const user = await getUserFromToken(req);

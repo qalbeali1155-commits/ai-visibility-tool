@@ -217,6 +217,8 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
   </div>
   <div class="nav-right">
     <div class="live-badge"><i class="fa-solid fa-circle" style="font-size:7px;color:#22c55e;"></i> <span>Live Data</span></div>
+    <div class="live-badge" id="usageBadge" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c;"><i class="fa-solid fa-bolt"></i> <span id="usageText">...</span></div>
+    <button class="history-btn" id="adminBtn" style="display:none;" onclick="window.location.href='/admin.html'" title="Admin Panel"><i class="fa-solid fa-user-shield"></i></button>
     <button class="history-btn" onclick="openHistory()" title="Search History"><i class="fa-solid fa-clock-rotate-left"></i></button>
     <button class="logout-btn" onclick="logout()" title="Log out"><i class="fa-solid fa-right-from-bracket"></i></button>
     <button class="hamburger" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
@@ -318,7 +320,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
         <div class="input-row-3 mb16">
           <div class="field"><label><i class="fa-solid fa-globe"></i> Domain</label><input type="text" id="l-domain" placeholder="yoursite.com"/></div>
           <div class="field"><label><i class="fa-solid fa-key"></i> Service Keyword</label><input type="text" id="l-keyword" placeholder="window repair"/></div>
-          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="California"/></div>
+          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="Karachi"/></div>
         </div>
         <button class="btn-run" id="btn-local" onclick="runLocal()"><i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence</button>
       </div>
@@ -433,8 +435,28 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) {
     window.location.href = '/';
+    return;
   }
+  refreshUsageBadge();
 })();
+
+async function refreshUsageBadge(){
+  try{
+    const token = await getAccessToken();
+    const res = await fetch('/api/check-access', { headers: { 'Authorization': 'Bearer ' + token } });
+    const info = await res.json();
+    window.accessInfo = info;
+    var badge = document.getElementById('usageText');
+    if(info.unlimited){
+      badge.textContent = (info.is_admin ? 'Admin' : 'Unlimited');
+    } else {
+      badge.textContent = info.used_today + '/' + info.daily_limit + ' today (' + info.plan + ')';
+    }
+    if(info.is_admin){
+      document.getElementById('adminBtn').style.display = 'flex';
+    }
+  }catch(e){ console.log('Could not load access info', e); }
+}
 
 async function logout() {
   await supabaseClient.auth.signOut();
@@ -551,6 +573,8 @@ async function runVisibility(){
   try{
     var r=await fetch("/api/visibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
     var d=await r.json();
+    if(!r.ok){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-rocket"></i> Generate AI Visibility Report';return;}
+    refreshUsageBadge();
     var t=d.ai_response||"";
     var mentioned=d.mentioned;
     var visM=t.match(/VISIBILITY STATUS:([\s\S]*?)TOP 5/);
@@ -603,6 +627,8 @@ async function runSentiment(){
   try{
     var r=await fetch("/api/sentiment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom})});
     var d=await r.json();
+    if(!r.ok){document.getElementById("result-sentiment").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-heart-pulse"></i> Analyze Brand Sentiment';return;}
+    refreshUsageBadge();
     var t=d.ai_response||"";
     var sentM=t.match(/SENTIMENT:\s*(\w+)/);
     var scM=t.match(/SENTIMENT SCORE:\s*(\d+)%/);
@@ -660,6 +686,8 @@ async function runWhyNotRanking(){
   try{
     var r=await fetch("/api/whynotranking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
+    if(!r.ok){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass-chart"></i> Run Gap Analysis';return;}
+    refreshUsageBadge();
     var t=d.ai_response||"";
     var stM=t.match(/RANKING STATUS:\s*(.+)/);
     var rnM=t.match(/KEY ISSUES:([\s\S]*?)HOW TO IMPROVE VISIBILITY/);
@@ -706,6 +734,8 @@ async function runLocal(){
   try{
     var r=await fetch("/api/local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
     var d=await r.json();
+    if(!r.ok){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence';return;}
+    refreshUsageBadge();
     var t=d.ai_response||"";
     var stM=t.match(/LOCAL VISIBILITY STATUS:\s*(\w+)/);
     var scM=t.match(/LOCAL SCORE:\s*(\d+)%/);
@@ -757,6 +787,8 @@ async function runCitation(){
   try{
     var r=await fetch("/api/citation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
+    if(!r.ok){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';return;}
+    refreshUsageBadge();
     var t=d.ai_response||"";
     var scM=t.match(/CITATION SCORE:\s*(\d+)%/);
     var frM=t.match(/CITATION FREQUENCY:\s*(.+)/);
@@ -821,7 +853,8 @@ async function runGeoGrid(){
   try{
     var r=await fetch("/api/geo-grid",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
     var d=await r.json();
-    if(d.error){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626">'+d.error+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';return;}
+    if(!r.ok){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';return;}
+    refreshUsageBadge();
     var pts=d.points||[];
     var found=pts.filter(function(p){return p.rank!==null;});
     var avgRank=found.length?(found.reduce(function(a,p){return a+p.rank;},0)/found.length).toFixed(1):"N/A";
