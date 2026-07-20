@@ -320,7 +320,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
         <div class="input-row-3 mb16">
           <div class="field"><label><i class="fa-solid fa-globe"></i> Domain</label><input type="text" id="l-domain" placeholder="yoursite.com"/></div>
           <div class="field"><label><i class="fa-solid fa-key"></i> Service Keyword</label><input type="text" id="l-keyword" placeholder="window repair"/></div>
-          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="Karachi"/></div>
+          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="California"/></div>
         </div>
         <button class="btn-run" id="btn-local" onclick="runLocal()"><i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence</button>
       </div>
@@ -571,6 +571,7 @@ async function runVisibility(){
   setLoad("result-visibility");
   document.getElementById("result-visibility").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/visibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-rocket"></i> Generate AI Visibility Report';return;}
@@ -625,6 +626,7 @@ async function runSentiment(){
   setLoad("result-sentiment");
   document.getElementById("result-sentiment").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/sentiment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-sentiment").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-heart-pulse"></i> Analyze Brand Sentiment';return;}
@@ -684,6 +686,7 @@ async function runWhyNotRanking(){
   setLoad("result-whynotranking");
   document.getElementById("result-whynotranking").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/whynotranking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass-chart"></i> Run Gap Analysis';return;}
@@ -732,6 +735,7 @@ async function runLocal(){
   setLoad("result-local");
   document.getElementById("result-local").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence';return;}
@@ -785,6 +789,7 @@ async function runCitation(){
   setLoad("result-citation");
   document.getElementById("result-citation").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/citation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';return;}
@@ -851,6 +856,7 @@ async function runGeoGrid(){
   setLoad("result-geogrid");
   document.getElementById("result-geogrid").scrollIntoView({behavior:"smooth"});
   try{
+    var token=await getAccessToken();
     var r=await fetch("/api/geo-grid",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';return;}
