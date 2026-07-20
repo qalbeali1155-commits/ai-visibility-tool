@@ -572,7 +572,10 @@ async function runVisibility(){
   document.getElementById("result-visibility").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/visibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
+    var r=await fetch("/api/visibility",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-rocket"></i> Generate AI Visibility Report';return;}
     refreshUsageBadge();
@@ -627,7 +630,10 @@ async function runSentiment(){
   document.getElementById("result-sentiment").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/sentiment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom})});
+    var r=await fetch("/api/sentiment",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({domain:dom})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-sentiment").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-heart-pulse"></i> Analyze Brand Sentiment';return;}
     refreshUsageBadge();
@@ -687,7 +693,10 @@ async function runWhyNotRanking(){
   document.getElementById("result-whynotranking").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/whynotranking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
+    var r=await fetch("/api/whynotranking",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass-chart"></i> Run Gap Analysis';return;}
     refreshUsageBadge();
@@ -736,7 +745,10 @@ async function runLocal(){
   document.getElementById("result-local").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
+    var r=await fetch("/api/local",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence';return;}
     refreshUsageBadge();
@@ -790,7 +802,10 @@ async function runCitation(){
   document.getElementById("result-citation").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/citation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:dom,keyword:kw})});
+    var r=await fetch("/api/citation",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';return;}
     refreshUsageBadge();
@@ -857,7 +872,10 @@ async function runGeoGrid(){
   document.getElementById("result-geogrid").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/geo-grid",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
+    var r=await fetch("/api/geo-grid",{method:"POST",headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+token
+},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';return;}
     refreshUsageBadge();
