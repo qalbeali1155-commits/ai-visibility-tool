@@ -23,11 +23,26 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
 .logo-name{font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;}
 .logo-name span{color:#065f46;}
 .logo-tag{background:#f0fdf4;color:#065f46;border:1px solid #bbf7d0;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;}
-.nav-links{display:flex;align-items:center;gap:4px;}
-.nav-tab{padding:8px 16px;color:#64748b;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all 0.15s;font-family:'Inter',sans-serif;white-space:nowrap;}
+.nav-links{display:flex;align-items:center;gap:1px;}
+.nav-tab{padding:7px 11px;color:#64748b;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all 0.15s;font-family:'Inter',sans-serif;white-space:nowrap;}
 .nav-tab:hover{background:#f1f5f9;color:#0f172a;}
 .nav-tab.active{background:#065f46;color:white;}
 .nav-right{display:flex;align-items:center;gap:12px;}
+.status-pill{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;transition:all .15s;}
+.status-pill .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;}
+.status-pill.limit{background:#fff7ed;border-color:#fed7aa;color:#c2410c;}
+.status-pill.limit .dot{background:#f97316;}
+.user-menu{position:relative;}
+.user-menu-btn{width:34px;height:34px;border-radius:10px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#334155;font-size:14px;transition:all .15s;}
+.user-menu-btn:hover{background:#e2e8f0;}
+.user-menu-btn.is-admin{background:#f0fdf4;border-color:#bbf7d0;color:#065f46;}
+.user-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:white;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,0.14);min-width:200px;padding:6px;z-index:150;}
+.user-dropdown.open{display:block;}
+.user-dropdown a{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;text-decoration:none;}
+.user-dropdown a:hover{background:#f8fafc;}
+.user-dropdown a.danger{color:#dc2626;}
+.user-dropdown a.danger:hover{background:#fee2e2;}
+.user-dropdown a i{width:16px;color:#94a3b8;font-size:13px;}
 .live-badge{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;}
 .logout-btn{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;}
 .logout-btn:hover{background:#fecaca;}
@@ -132,6 +147,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
 .loading p{font-size:15px;color:#64748b;font-weight:500;}
 .loading small{font-size:12px;color:#94a3b8;display:block;margin-top:6px;}
 @media(max-width:768px){
+  .status-pill{font-size:10px;padding:5px 9px;}
   .navbar{padding:0 16px;}
   .nav-links{display:none;}
   .hamburger{display:block;}
@@ -195,7 +211,8 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
   .tab-hero h1{font-size:21px;}
   .logo-name{font-size:16px;}
   .logo-tag{display:none;}
-  .live-badge span{display:none;}
+  .status-pill span:not(.dot){display:none;}
+.status-pill{padding:5px 7px;}
 }
 </style>
 </head>
@@ -215,12 +232,16 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
     <button class="nav-tab" onclick="switchTab('citation',this)"><i class="fa-solid fa-link"></i> Citation Score</button>
     <button class="nav-tab" onclick="switchTab('geogrid',this)"><i class="fa-solid fa-map-location-dot"></i> Geo-Grid Map</button>
   </div>
-  <div class="nav-right">
-    <div class="live-badge"><i class="fa-solid fa-circle" style="font-size:7px;color:#22c55e;"></i> <span>Live Data</span></div>
-    <div class="live-badge" id="usageBadge" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c;"><i class="fa-solid fa-bolt"></i> <span id="usageText">...</span></div>
-    <button class="history-btn" id="adminBtn" style="display:none;" onclick="window.location.href='/admin.html'" title="Admin Panel"><i class="fa-solid fa-user-shield"></i></button>
-    <button class="history-btn" onclick="openHistory()" title="Search History"><i class="fa-solid fa-clock-rotate-left"></i></button>
-    <button class="logout-btn" onclick="logout()" title="Log out"><i class="fa-solid fa-right-from-bracket"></i></button>
+<div class="nav-right">
+    <div class="status-pill" id="statusPill"><span class="dot"></span><span id="usageText">...</span></div>
+    <div class="user-menu" id="userMenu">
+      <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu()" title="Account"><i class="fa-solid fa-user"></i></button>
+      <div class="user-dropdown" id="userDropdown">
+        <a id="adminMenuItem" style="display:none;" onclick="window.location.href='/admin.html'"><i class="fa-solid fa-user-shield"></i> Admin Panel</a>
+        <a onclick="openHistory()"><i class="fa-solid fa-clock-rotate-left"></i> Search History</a>
+        <a class="danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Log out</a>
+      </div>
+    </div>
     <button class="hamburger" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
   </div>
 </nav>
@@ -447,16 +468,30 @@ async function refreshUsageBadge(){
     const info = await res.json();
     window.accessInfo = info;
     var badge = document.getElementById('usageText');
+    var pill = document.getElementById('statusPill');
     if(info.unlimited){
-      badge.textContent = (info.is_admin ? 'Admin' : 'Unlimited');
+      badge.textContent = (info.is_admin ? 'Admin · Unlimited' : 'Unlimited');
+      pill.classList.remove('limit');
     } else {
-      badge.textContent = info.used_today + '/' + info.daily_limit + ' today (' + info.plan + ')';
+      badge.textContent = info.used_today + '/' + info.daily_limit + ' today';
+      pill.classList.toggle('limit', info.used_today >= info.daily_limit);
     }
     if(info.is_admin){
-      document.getElementById('adminBtn').style.display = 'flex';
+      document.getElementById('adminMenuItem').style.display = 'flex';
+      document.getElementById('userMenuBtn').classList.add('is-admin');
     }
   }catch(e){ console.log('Could not load access info', e); }
 }
+
+function toggleUserMenu(){
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  var menu = document.getElementById('userMenu');
+  if(menu && !menu.contains(e.target)){
+    document.getElementById('userDropdown').classList.remove('open');
+  }
+});
 
 async function logout() {
   await supabaseClient.auth.signOut();
