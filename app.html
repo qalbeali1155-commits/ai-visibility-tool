@@ -16,18 +16,19 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:hidden;}
-.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo-mark{width:36px;height:36px;flex-shrink:0;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.05);gap:16px;}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-mark{width:34px;height:34px;flex-shrink:0;}
 .logo-mark svg{width:100%;height:100%;display:block;}
-.logo-name{font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;}
+.logo-name{font-size:17px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;}
 .logo-name span{color:#065f46;}
 .logo-tag{background:#f0fdf4;color:#065f46;border:1px solid #bbf7d0;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;}
-.nav-links{display:flex;align-items:center;gap:1px;}
-.nav-tab{padding:7px 11px;color:#64748b;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all 0.15s;font-family:'Inter',sans-serif;white-space:nowrap;}
+.nav-links{display:flex;align-items:center;gap:1px;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-tab{padding:7px 11px;color:#64748b;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all 0.15s;font-family:'Inter',sans-serif;white-space:nowrap;flex-shrink:0;}
 .nav-tab:hover{background:#f1f5f9;color:#0f172a;}
 .nav-tab.active{background:#065f46;color:white;}
-.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .status-pill{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;transition:all .15s;}
 .status-pill .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;}
 .status-pill.limit{background:#fff7ed;border-color:#fed7aa;color:#c2410c;}
@@ -43,11 +44,6 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
 .user-dropdown a.danger{color:#dc2626;}
 .user-dropdown a.danger:hover{background:#fee2e2;}
 .user-dropdown a i{width:16px;color:#94a3b8;font-size:13px;}
-.live-badge{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;}
-.logout-btn{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;}
-.logout-btn:hover{background:#fecaca;}
-.history-btn{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;}
-.history-btn:hover{background:#dcfce7;}
 .history-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:200;align-items:flex-start;justify-content:center;padding:60px 20px;overflow-y:auto;}
 .history-modal.open{display:flex;}
 .history-panel{background:white;border-radius:20px;max-width:600px;width:100%;padding:24px;box-shadow:0 25px 60px rgba(0,0,0,0.3);}
@@ -138,19 +134,45 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
 .heat-legend{display:flex;gap:16px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
 .heat-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;font-weight:600;}
 .heat-dot{width:12px;height:12px;border-radius:4px;}
-.map-container{height:420px;border-radius:16px;overflow:hidden;border:1px solid #f1f5f9;margin-bottom:6px;}
-.grid-marker{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:12px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.map-container{height:520px;border-radius:16px;overflow:hidden;border:1px solid #f1f5f9;margin-bottom:6px;}
+.grid-marker{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:9.5px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
 .grid-marker-center{width:14px;height:14px;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.biz-search-wrap{position:relative;}
+.biz-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #e2e8f0;border-radius:10px;margin-top:4px;max-height:280px;overflow-y:auto;box-shadow:0 12px 32px rgba(15,23,42,0.16);z-index:80;text-align:left;}
+.biz-dropdown.open{display:block;}
+.biz-option{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;}
+.biz-option:last-child{border-bottom:none;}
+.biz-option:hover{background:#f8fafc;}
+.biz-option-name{font-size:13.5px;font-weight:700;color:#0f172a;}
+.biz-option-meta{font-size:11.5px;color:#64748b;margin-top:2px;}
+.biz-card{margin-top:10px;padding:14px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.biz-card-name{font-size:14px;font-weight:700;color:#065f46;}
+.biz-card-meta{font-size:12px;color:#374151;margin-top:3px;}
+.biz-card-clear{background:none;border:none;color:#dc2626;cursor:pointer;font-size:14px;flex-shrink:0;}
+.gauge-card{display:flex;align-items:center;gap:18px;}
+.gauge-num{font-size:30px;font-weight:800;color:#0f172a;}
+.gauge-sub{font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.stat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.stat-bar-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.stat-bar-label{width:44px;font-size:12px;font-weight:700;color:#374151;flex-shrink:0;}
+.stat-bar-bg{flex:1;height:9px;background:#f1f5f9;border-radius:999px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:999px;}
+.stat-bar-pct{width:40px;text-align:right;font-size:12px;font-weight:700;flex-shrink:0;}
+.competitor-list{max-height:360px;overflow-y:auto;}
+.competitor-row{display:flex;align-items:center;gap:12px;padding:9px 12px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:8px;margin-bottom:6px;font-size:13px;}
+.competitor-rank{font-weight:800;color:#065f46;width:38px;flex-shrink:0;font-size:12px;}
+.competitor-name{flex:1;color:#374151;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.competitor-app{font-size:10.5px;color:#94a3b8;flex-shrink:0;white-space:nowrap;}
 .loading{text-align:center;padding:60px 20px;}
 .spin{width:44px;height:44px;border:3px solid #e2e8f0;border-top:3px solid #065f46;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading p{font-size:15px;color:#64748b;font-weight:500;}
 .loading small{font-size:12px;color:#94a3b8;display:block;margin-top:6px;}
 @media(max-width:768px){
-  .status-pill{font-size:10px;padding:5px 9px;}
   .navbar{padding:0 16px;}
   .nav-links{display:none;}
   .hamburger{display:block;}
+  .status-pill{font-size:10px;padding:5px 9px;}
   .hero{padding:28px 16px 24px;}
   .tab-hero h1{font-size:24px;letter-spacing:-0.5px;}
   .hero-sub{font-size:13px;padding:0 4px;}
@@ -212,7 +234,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
   .logo-name{font-size:16px;}
   .logo-tag{display:none;}
   .status-pill span:not(.dot){display:none;}
-.status-pill{padding:5px 7px;}
+  .status-pill{padding:5px 7px;}
 }
 </style>
 </head>
@@ -232,7 +254,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
     <button class="nav-tab" onclick="switchTab('citation',this)"><i class="fa-solid fa-link"></i> Citation Score</button>
     <button class="nav-tab" onclick="switchTab('geogrid',this)"><i class="fa-solid fa-map-location-dot"></i> Geo-Grid Map</button>
   </div>
-<div class="nav-right">
+  <div class="nav-right">
     <div class="status-pill" id="statusPill"><span class="dot"></span><span id="usageText">...</span></div>
     <div class="user-menu" id="userMenu">
       <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu()" title="Account"><i class="fa-solid fa-user"></i></button>
@@ -341,7 +363,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
         <div class="input-row-3 mb16">
           <div class="field"><label><i class="fa-solid fa-globe"></i> Domain</label><input type="text" id="l-domain" placeholder="yoursite.com"/></div>
           <div class="field"><label><i class="fa-solid fa-key"></i> Service Keyword</label><input type="text" id="l-keyword" placeholder="window repair"/></div>
-          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="California"/></div>
+          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="Karachi"/></div>
         </div>
         <button class="btn-run" id="btn-local" onclick="runLocal()"><i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence</button>
       </div>
@@ -359,12 +381,15 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
     </div>
 
     <div class="tab-input" id="input-geogrid">
-      <div class="tab-desc"><strong>GMB Geo-Grid Rank Tracker:</strong> Enter your business name (as it appears on Google), a keyword, a center location, and a radius. We'll check 9 points across that radius and show where your Google Business Profile ranks, plus which competitors appear at each point.</div>
+      <div class="tab-desc"><strong>GMB Geo-Grid Rank Tracker:</strong> Search your business by name, pick it from Google's results, then set a keyword, center location, and radius. We'll scan a dense 121-point grid across that radius and show exactly where your Google Business Profile ranks, plus which competitors dominate at each point.</div>
       <div class="input-card">
         <div class="input-row mb16">
-          <div class="field"><label><i class="fa-solid fa-store"></i> Business Name (as on Google)</label><input type="text" id="g-business" placeholder="e.g. Repair Champions"/></div>
+          <div class="field biz-search-wrap"><label><i class="fa-solid fa-store"></i> Target Business (search Google)</label><input type="text" id="g-business-search" placeholder="Start typing your business name..." autocomplete="off" oninput="searchBusiness()"/><input type="hidden" id="g-business"/>
+            <div class="biz-dropdown" id="g-business-dropdown"></div>
+          </div>
           <div class="field"><label><i class="fa-solid fa-key"></i> Keyword</label><input type="text" id="g-keyword" placeholder="window covering near me"/></div>
         </div>
+        <div class="biz-card" id="g-business-card" style="display:none;"></div>
         <div class="input-row mb16">
           <div class="field"><label><i class="fa-solid fa-location-crosshairs"></i> Center Address / City</label><input type="text" id="g-location" placeholder="e.g. Downtown Irvine, CA"/></div>
           <div class="field"><label><i class="fa-solid fa-ruler"></i> Radius</label>
@@ -607,10 +632,7 @@ async function runVisibility(){
   document.getElementById("result-visibility").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/visibility",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
+    var r=await fetch("/api/visibility",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({keyword:kw,domain:dom,competitors:comp})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-rocket"></i> Generate AI Visibility Report';return;}
     refreshUsageBadge();
@@ -665,10 +687,7 @@ async function runSentiment(){
   document.getElementById("result-sentiment").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/sentiment",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({domain:dom})});
+    var r=await fetch("/api/sentiment",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({domain:dom})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-sentiment").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-heart-pulse"></i> Analyze Brand Sentiment';return;}
     refreshUsageBadge();
@@ -728,10 +747,7 @@ async function runWhyNotRanking(){
   document.getElementById("result-whynotranking").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/whynotranking",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({domain:dom,keyword:kw})});
+    var r=await fetch("/api/whynotranking",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass-chart"></i> Run Gap Analysis';return;}
     refreshUsageBadge();
@@ -780,10 +796,7 @@ async function runLocal(){
   document.getElementById("result-local").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/local",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
+    var r=await fetch("/api/local",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({domain:dom,keyword:kw,city:city})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence';return;}
     refreshUsageBadge();
@@ -837,10 +850,7 @@ async function runCitation(){
   document.getElementById("result-citation").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/citation",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({domain:dom,keyword:kw})});
+    var r=await fetch("/api/citation",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({domain:dom,keyword:kw})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';return;}
     refreshUsageBadge();
@@ -886,13 +896,57 @@ async function runCitation(){
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';
 }
 
+var bizSearchTimer=null;
+var bizSearchResults=[];
+function searchBusiness(){
+  clearTimeout(bizSearchTimer);
+  var q=document.getElementById("g-business-search").value.trim();
+  var dd=document.getElementById("g-business-dropdown");
+  document.getElementById("g-business").value="";
+  if(q.length<2){dd.classList.remove("open");dd.innerHTML="";return;}
+  bizSearchTimer=setTimeout(async function(){
+    try{
+      var token=await getAccessToken();
+      var loc=document.getElementById("g-location").value.trim();
+      var r=await fetch("/api/business-search",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({query:q,location:loc})});
+      var d=await r.json();
+      bizSearchResults=d.results||[];
+      if(!bizSearchResults.length){dd.innerHTML='<div class="biz-option"><div class="biz-option-meta">No matches found — try a different spelling or add your city.</div></div>';dd.classList.add("open");return;}
+      dd.innerHTML=bizSearchResults.map(function(p,i){
+        return '<div class="biz-option" onclick="selectBusiness('+i+')"><div class="biz-option-name">'+p.title+'</div><div class="biz-option-meta">'+(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+')':'')+'</div></div>';
+      }).join("");
+      dd.classList.add("open");
+    }catch(e){console.log("Business search failed",e);}
+  },350);
+}
+function selectBusiness(i){
+  var p=bizSearchResults[i];
+  if(!p)return;
+  document.getElementById("g-business").value=p.title;
+  document.getElementById("g-business-search").value=p.title;
+  document.getElementById("g-business-dropdown").classList.remove("open");
+  var card=document.getElementById("g-business-card");
+  card.style.display="flex";
+  card.innerHTML='<div><div class="biz-card-name"><i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>'+p.title+'</div><div class="biz-card-meta">'+(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+' reviews)':'')+'</div></div><button class="biz-card-clear" onclick="clearBusiness()" title="Change business"><i class="fa-solid fa-xmark"></i></button>';
+}
+function clearBusiness(){
+  document.getElementById("g-business").value="";
+  document.getElementById("g-business-search").value="";
+  document.getElementById("g-business-card").style.display="none";
+}
+document.addEventListener("click",function(e){
+  var dd=document.getElementById("g-business-dropdown");
+  var input=document.getElementById("g-business-search");
+  if(dd && e.target!==input && !dd.contains(e.target)){dd.classList.remove("open");}
+});
+
 var geoMapInstance=null;
 
 function rankColor(rank){
-  if(rank===null)return "#dc2626";
-  if(rank<=3)return "#065f46";
+  if(rank===null)return "#9ca3af";
+  if(rank<=3)return "#16a34a";
   if(rank<=10)return "#f59e0b";
-  return "#f97316";
+  return "#dc2626";
 }
 
 async function runGeoGrid(){
@@ -900,41 +954,51 @@ async function runGeoGrid(){
   var kw=document.getElementById("g-keyword").value.trim();
   var loc=document.getElementById("g-location").value.trim();
   var radius=document.getElementById("g-radius").value;
-  if(!biz||!kw||!loc){alert("Please fill business name, keyword and location!");return;}
+  if(!biz){alert("Please search and select your business from the dropdown first!");return;}
+  if(!kw||!loc){alert("Please fill keyword and location!");return;}
   var btn=document.getElementById("btn-geogrid");
-  btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Scanning grid...';
+  btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Scanning 121 points...';
   setLoad("result-geogrid");
   document.getElementById("result-geogrid").scrollIntoView({behavior:"smooth"});
   try{
     var token=await getAccessToken();
-    var r=await fetch("/api/geo-grid",{method:"POST",headers:{
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+token
-},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
+    var r=await fetch("/api/geo-grid",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({businessName:biz,keyword:kw,location:loc,radiusKm:radius})});
     var d=await r.json();
     if(!r.ok){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> '+(d.error||"Something went wrong")+'</p></div>';btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';return;}
     refreshUsageBadge();
     var pts=d.points||[];
-    var found=pts.filter(function(p){return p.rank!==null;});
-    var avgRank=found.length?(found.reduce(function(a,p){return a+p.rank;},0)/found.length).toFixed(1):"N/A";
-    var visPct=pts.length?Math.round((found.length/pts.length)*100):0;
-    var top3=pts.filter(function(p){return p.rank!==null&&p.rank<=3;}).length;
+    var stats=d.stats||{};
+    var avgRank=stats.avgRank!==null&&stats.avgRank!==undefined?stats.avgRank:"N/A";
+    var compList=d.competitorList||[];
+
+    var compHtml="";
+    compList.forEach(function(c,i){
+      compHtml+='<div class="competitor-row"><div class="competitor-rank">#'+(i+1)+'</div><div class="competitor-name" title="'+c.name+'">'+c.name+'</div><div class="competitor-app">avg '+c.avgRank+' &middot; '+c.appearances+'x</div></div>';
+    });
+    if(!compHtml)compHtml='<div class="history-empty">No competitors found in this grid.</div>';
 
     document.getElementById("result-geogrid").innerHTML=
       '<div class="kpi-grid">'+
       '<div class="kpi"><div class="kpi-icon" style="background:#f0fdf4;"><i class="fa-solid fa-ranking-star" style="color:#065f46;font-size:18px;"></i></div><div class="kpi-val">'+avgRank+'</div><div class="kpi-label">Average Rank</div></div>'+
-      '<div class="kpi"><div class="kpi-icon" style="background:#fff7ed;"><i class="fa-solid fa-eye" style="color:#f97316;font-size:18px;"></i></div><div class="kpi-val">'+visPct+'%</div><div class="kpi-label">Visibility</div></div>'+
-      '<div class="kpi"><div class="kpi-icon" style="background:#fef9c3;"><i class="fa-solid fa-trophy" style="color:#a16207;font-size:18px;"></i></div><div class="kpi-val">'+top3+'/'+pts.length+'</div><div class="kpi-label">Top 3 Spots</div></div>'+
+      '<div class="kpi"><div class="kpi-icon" style="background:#dcfce7;"><i class="fa-solid fa-circle-check" style="color:#16a34a;font-size:18px;"></i></div><div class="kpi-val">'+(stats.highPct||0)+'%</div><div class="kpi-label">High (Top 3)</div></div>'+
+      '<div class="kpi"><div class="kpi-icon" style="background:#fef9c3;"><i class="fa-solid fa-clock" style="color:#a16207;font-size:18px;"></i></div><div class="kpi-val">'+(stats.medPct||0)+'%</div><div class="kpi-label">Medium (4-10)</div></div>'+
       '<div class="kpi"><div class="kpi-icon" style="background:#dbeafe;"><i class="fa-solid fa-users" style="color:#1d4ed8;font-size:18px;"></i></div><div class="kpi-val">'+(d.uniqueCompetitors||0)+'</div><div class="kpi-label">Competitors Found</div></div>'+
       '</div>'+
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#dbeafe;"><i class="fa-solid fa-map-location-dot" style="color:#1d4ed8;"></i></div>'+
-      '<div><div class="report-title">GMB Geo-Grid Rank Map</div><div class="report-sub">'+biz+' &nbsp;&middot;&nbsp; "'+kw+'" &nbsp;&middot;&nbsp; '+d.radiusKm+'km radius near '+loc+'</div></div>'+
+      '<div><div class="report-title">GMB Geo-Grid Rank Map</div><div class="report-sub">'+biz+' &nbsp;&middot;&nbsp; "'+kw+'" &nbsp;&middot;&nbsp; '+d.radiusKm+'km radius near '+loc+' &nbsp;&middot;&nbsp; '+(stats.total||pts.length)+' points scanned</div></div>'+
       '</div>'+
-      '<div class="sec"><div class="sec-label"><i class="fa-solid fa-map"></i> 3x3 Ranking Grid — click a point for competitor details</div><div class="map-container" id="geoMapDiv"></div>'+
-      '<div class="heat-legend"><div class="heat-legend-item"><div class="heat-dot" style="background:#065f46;"></div>Rank 1-3</div><div class="heat-legend-item"><div class="heat-dot" style="background:#f59e0b;"></div>Rank 4-10</div><div class="heat-legend-item"><div class="heat-dot" style="background:#f97316;"></div>Rank 11-20</div><div class="heat-legend-item"><div class="heat-dot" style="background:#dc2626;"></div>Not in Top 20</div></div>'+
+      '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-simple"></i> Rank Distribution</div>'+
+      '<div class="stat-bar-row"><div class="stat-bar-dot" style="background:#16a34a;"></div><div class="stat-bar-label">High</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+(stats.highPct||0)+'%;background:#16a34a;"></div></div><div class="stat-bar-pct" style="color:#16a34a;">'+(stats.highPct||0)+'%</div></div>'+
+      '<div class="stat-bar-row"><div class="stat-bar-dot" style="background:#f59e0b;"></div><div class="stat-bar-label">Medium</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+(stats.medPct||0)+'%;background:#f59e0b;"></div></div><div class="stat-bar-pct" style="color:#f59e0b;">'+(stats.medPct||0)+'%</div></div>'+
+      '<div class="stat-bar-row"><div class="stat-bar-dot" style="background:#dc2626;"></div><div class="stat-bar-label">Low</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+(stats.lowPct||0)+'%;background:#dc2626;"></div></div><div class="stat-bar-pct" style="color:#dc2626;">'+(stats.lowPct||0)+'%</div></div>'+
+      '<div class="stat-bar-row"><div class="stat-bar-dot" style="background:#9ca3af;"></div><div class="stat-bar-label">Out</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+(stats.outPct||0)+'%;background:#9ca3af;"></div></div><div class="stat-bar-pct" style="color:#6b7280;">'+(stats.outPct||0)+'%</div></div>'+
       '</div>'+
+      '<div class="sec"><div class="sec-label"><i class="fa-solid fa-map"></i> 121-Point Ranking Grid — click a pin for competitor details</div><div class="map-container" id="geoMapDiv"></div>'+
+      '<div class="heat-legend"><div class="heat-legend-item"><div class="heat-dot" style="background:#16a34a;"></div>High (1-3)</div><div class="heat-legend-item"><div class="heat-dot" style="background:#f59e0b;"></div>Medium (4-10)</div><div class="heat-legend-item"><div class="heat-dot" style="background:#dc2626;"></div>Low (11-20)</div><div class="heat-legend-item"><div class="heat-dot" style="background:#9ca3af;"></div>Out (not found)</div></div>'+
+      '</div>'+
+      '<div class="sec"><div class="sec-label"><i class="fa-solid fa-trophy"></i> Top Competitors Across the Grid</div><div class="competitor-list">'+compHtml+'</div></div>'+
       '</div>';
 
     setTimeout(function(){
@@ -944,8 +1008,8 @@ async function runGeoGrid(){
       L.marker([d.center.lat,d.center.lng],{icon:L.divIcon({className:'',html:'<div class="grid-marker-center"></div>',iconSize:[14,14]})}).addTo(geoMapInstance).bindPopup('Center: '+loc);
       pts.forEach(function(p){
         var color=rankColor(p.rank);
-        var label=p.rank!==null?String(p.rank):"20+";
-        var icon=L.divIcon({className:'',html:'<div class="grid-marker" style="background:'+color+'">'+label+'</div>',iconSize:[34,34]});
+        var label=p.rank!==null?String(p.rank):"—";
+        var icon=L.divIcon({className:'',html:'<div class="grid-marker" style="background:'+color+'">'+label+'</div>',iconSize:[22,22]});
         var popupHtml='<div style="min-width:180px;font-family:Inter,sans-serif;">';
         popupHtml+='<strong>'+(p.rank!==null?('Rank #'+p.rank):'Not in top 20')+'</strong>';
         if(p.competitors&&p.competitors.length){
@@ -959,7 +1023,7 @@ async function runGeoGrid(){
       });
     },150);
 
-    saveToHistory('Geo-Grid Map', kw, biz, loc, 'Avg rank ' + avgRank + ', ' + visPct + '% visibility, ' + (d.uniqueCompetitors||0) + ' competitors', 'GMB Geo-grid scan: ' + found.length + '/' + pts.length + ' points ranked. Average rank: ' + avgRank + '. Visibility: ' + visPct + '%. Competitors found: ' + (d.uniqueCompetitors||0) + '. Radius: ' + d.radiusKm + 'km.');
+    saveToHistory('Geo-Grid Map', kw, biz, loc, 'Avg rank ' + avgRank + ', High ' + (stats.highPct||0) + '%, ' + (d.uniqueCompetitors||0) + ' competitors', 'GMB Geo-grid scan (121 points): Average rank ' + avgRank + '. High ' + (stats.highPct||0) + '% / Medium ' + (stats.medPct||0) + '% / Low ' + (stats.lowPct||0) + '% / Out ' + (stats.outPct||0) + '%. Competitors found: ' + (d.uniqueCompetitors||0) + '. Radius: ' + d.radiusKm + 'km.');
   }catch(e){document.getElementById("result-geogrid").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-map-location-dot"></i> Generate Geo-Grid Map';
 }

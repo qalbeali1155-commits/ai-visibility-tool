@@ -267,7 +267,37 @@ async function geocodeAddress(address) {
     return null;
 }
 
-// 6. GMB Geo-Grid Rank Tracker (business name based, selectable radius, competitors)
+// 5b. Business Search (autocomplete for GMB Geo-Grid tool)
+// Does not consume daily quota - it's just a lookup, not a full report.
+app.post('/api/business-search', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const { query, location } = req.body;
+    if (!query || query.trim().length < 2) return res.json({ results: [] });
+    try {
+        const q = location ? `${query} ${location}` : query;
+        const response = await fetch('https://google.serper.dev/places', {
+            method: 'POST',
+            headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q })
+        });
+        const data = await response.json();
+        const results = (data.places || []).slice(0, 8).map(p => ({
+            title: p.title,
+            address: p.address || '',
+            rating: p.rating || null,
+            ratingCount: p.ratingCount || p.reviews || null,
+            cid: p.cid || null,
+            website: p.website || null,
+            phoneNumber: p.phoneNumber || null,
+            latitude: p.latitude || null,
+            longitude: p.longitude || null
+        }));
+        res.json({ results });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// 6. GMB Geo-Grid Rank Tracker (dense 11x11 = 121 point grid, business-search based)
 app.post('/api/geo-grid', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
@@ -277,45 +307,89 @@ app.post('/api/geo-grid', async (req, res) => {
         if (!center) return res.status(400).json({ error: 'Could not find that location. Try a more specific address or city name.' });
 
         const radius = Math.min(Math.max(parseFloat(radiusKm) || 5, 1), 10);
-        const stepDeg = radius / 111;
+
+        // Dense grid: 11x11 = 121 points spread evenly across the radius
+        const GRID_SIZE = 11;
+        const half = Math.floor(GRID_SIZE / 2);
+        const stepDeg = (radius / 111) / half;
         const points = [];
-        for (let row = -1; row <= 1; row++) {
-            for (let col = -1; col <= 1; col++) {
+        for (let row = -half; row <= half; row++) {
+            for (let col = -half; col <= half; col++) {
                 points.push({ lat: center.lat + row * stepDeg, lng: center.lng + col * stepDeg });
             }
         }
 
         const nameLower = businessName.toLowerCase().trim();
 
+        // Run in parallel batches so we don't blow the serverless function timeout
+        const BATCH_SIZE = 20;
         const results = [];
-        for (const p of points) {
-            try {
-                const searchResponse = await fetch('https://google.serper.dev/places', {
-                    method: 'POST',
-                    headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ q: keyword, ll: `@${p.lat},${p.lng},14z` })
-                });
-                const data = await searchResponse.json();
-                const places = data.places || [];
-                let rank = null;
-                places.forEach((pl, idx) => {
-                    const title = (pl.title || '').toLowerCase();
-                    if (rank === null && title.includes(nameLower)) rank = idx + 1;
-                });
-                const competitors = places
-                    .filter(pl => !(pl.title || '').toLowerCase().includes(nameLower))
-                    .slice(0, 5)
-                    .map(pl => ({ name: pl.title, rating: pl.rating || null }));
-                results.push({ lat: p.lat, lng: p.lng, rank, competitors, totalFound: places.length });
-            } catch (e) {
-                results.push({ lat: p.lat, lng: p.lng, rank: null, competitors: [], totalFound: 0 });
-            }
+        for (let i = 0; i < points.length; i += BATCH_SIZE) {
+            const batch = points.slice(i, i + BATCH_SIZE);
+            const batchResults = await Promise.all(batch.map(async (p) => {
+                try {
+                    const searchResponse = await fetch('https://google.serper.dev/places', {
+                        method: 'POST',
+                        headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ q: keyword, ll: `@${p.lat},${p.lng},14z` })
+                    });
+                    const data = await searchResponse.json();
+                    const places = data.places || [];
+                    let rank = null;
+                    places.forEach((pl, idx) => {
+                        const title = (pl.title || '').toLowerCase();
+                        if (rank === null && title.includes(nameLower)) rank = idx + 1;
+                    });
+                    const competitors = places
+                        .filter(pl => !(pl.title || '').toLowerCase().includes(nameLower))
+                        .slice(0, 5)
+                        .map((pl, idx) => ({ name: pl.title, rating: pl.rating || null, rank: idx + 1 }));
+                    return { lat: p.lat, lng: p.lng, rank, competitors, totalFound: places.length };
+                } catch (e) {
+                    return { lat: p.lat, lng: p.lng, rank: null, competitors: [], totalFound: 0 };
+                }
+            }));
+            results.push(...batchResults);
         }
 
-        const allCompetitorNames = new Set();
-        results.forEach(r => r.competitors.forEach(c => allCompetitorNames.add(c.name)));
+        // Aggregate unique competitors with their average rank + how often they appeared
+        const compSum = {};
+        const compCount = {};
+        results.forEach(r => r.competitors.forEach(c => {
+            compSum[c.name] = (compSum[c.name] || 0) + c.rank;
+            compCount[c.name] = (compCount[c.name] || 0) + 1;
+        }));
+        const competitorList = Object.keys(compSum).map(name => ({
+            name,
+            avgRank: parseFloat((compSum[name] / compCount[name]).toFixed(2)),
+            appearances: compCount[name]
+        })).sort((a, b) => a.avgRank - b.avgRank).slice(0, 30);
 
-        res.json({ center, points: results, businessName, keyword, radiusKm: radius, uniqueCompetitors: allCompetitorNames.size });
+        const total = results.length;
+        const found = results.filter(r => r.rank !== null);
+        const high = results.filter(r => r.rank !== null && r.rank <= 3).length;
+        const med = results.filter(r => r.rank !== null && r.rank > 3 && r.rank <= 10).length;
+        const low = results.filter(r => r.rank !== null && r.rank > 10).length;
+        const out = results.filter(r => r.rank === null).length;
+        const avgRank = found.length ? parseFloat((found.reduce((a, r) => a + r.rank, 0) / found.length).toFixed(2)) : null;
+
+        res.json({
+            center,
+            points: results,
+            businessName,
+            keyword,
+            radiusKm: radius,
+            uniqueCompetitors: competitorList.length,
+            competitorList,
+            stats: {
+                avgRank,
+                highPct: total ? Math.round((high / total) * 100) : 0,
+                medPct: total ? Math.round((med / total) * 100) : 0,
+                lowPct: total ? Math.round((low / total) * 100) : 0,
+                outPct: total ? Math.round((out / total) * 100) : 0,
+                total
+            }
+        });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
