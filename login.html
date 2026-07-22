@@ -3,65 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AEO Tracker - Login</title>
+<title>AEO Tracker - Log In or Sign Up</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#065f46 0%,#047857 50%,#065f46 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.card{background:white;border-radius:20px;padding:36px 32px;max-width:400px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.3);}
-.logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;}
-.logo-mark{width:38px;height:38px;flex-shrink:0;}
-.logo-mark svg{width:100%;height:100%;display:block;}
-.logo-text{font-size:19px;font-weight:800;color:#0f172a;}
-.logo-text span{color:#065f46;}
-h1{font-size:22px;font-weight:700;text-align:center;color:#0f172a;margin-bottom:6px;}
-.sub{text-align:center;color:#64748b;font-size:13px;margin-bottom:26px;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;min-height:100vh;display:flex;}
+.wrap{display:flex;width:100%;min-height:100vh;}
+
+/* Left brand panel */
+.brand-panel{flex:1;background:linear-gradient(135deg,#065f46 0%,#047857 50%,#065f46 100%);display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;overflow:hidden;color:white;}
+.brand-panel::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(255,255,255,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(251,191,36,0.12) 0%,transparent 50%);}
+.brand-inner{position:relative;z-index:1;max-width:420px;}
+.brand-logo{display:flex;align-items:center;gap:12px;margin-bottom:40px;}
+.brand-logo-mark{width:42px;height:42px;}
+.brand-logo-mark svg{width:100%;height:100%;display:block;}
+.brand-logo-text{font-size:21px;font-weight:800;}
+.brand-logo-text span{color:#fbbf24;}
+.brand-panel h1{font-size:32px;font-weight:800;line-height:1.3;margin-bottom:16px;letter-spacing:-0.5px;}
+.brand-panel h1 span{color:#fbbf24;}
+.brand-panel p{color:rgba(255,255,255,0.75);font-size:14.5px;line-height:1.7;margin-bottom:36px;}
+.brand-features{display:flex;flex-direction:column;gap:16px;}
+.brand-feature{display:flex;align-items:center;gap:12px;font-size:13.5px;color:rgba(255,255,255,0.9);}
+.brand-feature i{width:34px;height:34px;background:rgba(255,255,255,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fbbf24;flex-shrink:0;}
+
+/* Right form panel */
+.form-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;background:white;}
+.card{max-width:380px;width:100%;}
+.mobile-logo{display:none;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;}
+.mobile-logo .logo-mark{width:36px;height:36px;}
+.mobile-logo .logo-mark svg{width:100%;height:100%;display:block;}
+.mobile-logo-text{font-size:18px;font-weight:800;color:#0f172a;}
+.mobile-logo-text span{color:#065f46;}
+h1.form-title{font-size:23px;font-weight:800;color:#0f172a;margin-bottom:6px;letter-spacing:-0.3px;}
+.sub{color:#64748b;font-size:13.5px;margin-bottom:26px;line-height:1.5;}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
 .field label{font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.6px;}
-.field input{padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:#f8fafc;}
+.field input{padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
 .field input:focus{outline:none;border-color:#065f46;background:white;box-shadow:0 0 0 3px rgba(6,95,70,0.08);}
-.btn{width:100%;padding:13px;background:linear-gradient(135deg,#065f46,#047857);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif;transition:all 0.2s;}
-.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(6,95,70,0.3);}
-.btn:disabled{opacity:0.6;cursor:not-allowed;}
-.switch{text-align:center;margin-top:18px;font-size:13px;color:#64748b;}
+.field input::placeholder{color:#94a3b8;}
+.pw-row{display:flex;justify-content:space-between;align-items:center;}
+.pw-row label{margin:0;}
+.forgot-link{font-size:11.5px;font-weight:700;color:#065f46;text-decoration:none;cursor:pointer;}
+.forgot-link:hover{text-decoration:underline;}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#065f46,#047857);color:white;border:none;border-radius:10px;font-size:14.5px;font-weight:700;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif;transition:all 0.2s;box-shadow:0 4px 14px rgba(6,95,70,0.25);}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(6,95,70,0.3);}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-back{width:100%;padding:12px;background:#f1f5f9;color:#374151;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:10px;font-family:'Inter',sans-serif;}
+.btn-back:hover{background:#e2e8f0;}
+.switch{text-align:center;margin-top:20px;font-size:13px;color:#64748b;}
 .switch a{color:#065f46;font-weight:700;cursor:pointer;text-decoration:none;}
-.msg{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;}
+.switch a:hover{text-decoration:underline;}
+.msg{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;line-height:1.5;}
 .msg.error{background:#fee2e2;color:#dc2626;display:block;}
 .msg.success{background:#dcfce7;color:#15803d;display:block;}
+.divider-note{font-size:12px;color:#94a3b8;text-align:center;margin-top:22px;line-height:1.6;}
+
+/* Post-signup confirmation screen */
+.confirm-screen{text-align:center;}
+.confirm-icon{width:64px;height:64px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#065f46;margin:0 auto 20px;}
+.confirm-email{font-weight:700;color:#0f172a;}
+
+@media(max-width:860px){
+  .brand-panel{display:none;}
+  .mobile-logo{display:flex;}
+}
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="logo">
-    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#logoGrad2)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="logoGrad2" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
-    <span class="logo-text">AEO <span>Tracker</span></span>
+<div class="wrap">
+
+  <div class="brand-panel">
+    <div class="brand-inner">
+      <div class="brand-logo">
+        <div class="brand-logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#logoGradL)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="logoGradL" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+        <span class="brand-logo-text">AEO <span>Tracker</span></span>
+      </div>
+      <h1>See exactly how AI engines <span>talk about your brand</span></h1>
+      <p>Track your visibility across ChatGPT, Gemini, and Perplexity, benchmark against competitors, and fix what's holding you back — backed by live Google data.</p>
+      <div class="brand-features">
+        <div class="brand-feature"><i class="fa-solid fa-magnifying-glass"></i> Real-time AI visibility scoring</div>
+        <div class="brand-feature"><i class="fa-solid fa-heart-pulse"></i> Brand sentiment & reputation tracking</div>
+        <div class="brand-feature"><i class="fa-solid fa-map-location-dot"></i> 121-point local GMB rank grid</div>
+      </div>
+    </div>
   </div>
 
-  <div id="msg" class="msg"></div>
+  <div class="form-panel">
+    <div class="card">
+      <div class="mobile-logo">
+        <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#logoGradM)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="logoGradM" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+        <span class="mobile-logo-text">AEO <span>Tracker</span></span>
+      </div>
 
-  <!-- LOGIN FORM -->
-  <div id="loginForm">
-    <h1>Welcome back</h1>
-    <p class="sub">Login to check your AI search visibility</p>
-    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"/></div>
-    <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"/></div>
-    <button class="btn" id="loginBtn" onclick="login()">Log In</button>
-    <div class="switch">Don't have an account? <a onclick="showSignup()">Sign up</a></div>
+      <div id="msg" class="msg"></div>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <h1 class="form-title">Welcome back</h1>
+        <p class="sub">Log in to check your AI search visibility</p>
+        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"/></div>
+        <div class="field">
+          <div class="pw-row"><label>Password</label><a class="forgot-link" onclick="showForgot()">Forgot password?</a></div>
+          <input type="password" id="login-password" placeholder="••••••••"/>
+        </div>
+        <button class="btn" id="loginBtn" onclick="login()">Log In</button>
+        <div class="switch">Don't have an account? <a onclick="showSignup()">Sign up</a></div>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="signupForm" style="display:none;">
+        <h1 class="form-title">Create your account</h1>
+        <p class="sub">Start tracking your AI search visibility — free</p>
+        <div class="field"><label>Username</label><input type="text" id="signup-username" placeholder="How should we address you?"/></div>
+        <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"/></div>
+        <button class="btn" id="signupBtn" onclick="signup()">Sign Up</button>
+        <div class="switch">Already have an account? <a onclick="showLogin()">Log in</a></div>
+      </div>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <div id="forgotForm" style="display:none;">
+        <h1 class="form-title">Reset your password</h1>
+        <p class="sub">Enter your email and we'll send you a reset link</p>
+        <div class="field"><label>Email</label><input type="email" id="forgot-email" placeholder="you@example.com"/></div>
+        <button class="btn" id="forgotBtn" onclick="sendReset()">Send Reset Link</button>
+        <button class="btn-back" onclick="showLogin()">Back to Log In</button>
+      </div>
+
+      <!-- POST-SIGNUP CONFIRMATION -->
+      <div id="confirmScreen" class="confirm-screen" style="display:none;">
+        <div class="confirm-icon"><i class="fa-solid fa-envelope-circle-check"></i></div>
+        <h1 class="form-title">Check your inbox</h1>
+        <p class="sub">We've sent a verification link to <span class="confirm-email" id="confirmEmailText"></span>. Open your Gmail, find the email from Supabase, and click the link to activate your account.</p>
+        <button class="btn-back" onclick="showLogin()">Back to Log In</button>
+        <div class="divider-note">Didn't get it? Check your Spam/Promotions folder — it may take a minute to arrive.</div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- SIGNUP FORM -->
-  <div id="signupForm" style="display:none;">
-    <h1>Create your account</h1>
-    <p class="sub">Start tracking your AI search visibility</p>
-    <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"/></div>
-    <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"/></div>
-    <button class="btn" id="signupBtn" onclick="signup()">Sign Up</button>
-    <div class="switch">Already have an account? <a onclick="showLogin()">Log in</a></div>
-  </div>
 </div>
 
 <script>
@@ -74,37 +158,42 @@ function showMsg(text, type) {
   m.className = 'msg ' + type;
   m.textContent = text;
 }
-
-function showSignup() {
+function clearMsg(){
+  document.getElementById('msg').className = 'msg';
+}
+function hideAllPanels(){
   document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('signupForm').style.display = 'block';
-  document.getElementById('msg').className = 'msg';
-}
-
-function showLogin() {
   document.getElementById('signupForm').style.display = 'none';
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('msg').className = 'msg';
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('confirmScreen').style.display = 'none';
 }
+function showSignup() { hideAllPanels(); document.getElementById('signupForm').style.display = 'block'; clearMsg(); }
+function showLogin() { hideAllPanels(); document.getElementById('loginForm').style.display = 'block'; clearMsg(); }
+function showForgot() { hideAllPanels(); document.getElementById('forgotForm').style.display = 'block'; clearMsg(); }
 
 async function signup() {
+  const username = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  if (!email || !password) { showMsg('Please fill all fields', 'error'); return; }
+  if (!username || !email || !password) { showMsg('Please fill all fields', 'error'); return; }
   if (password.length < 6) { showMsg('Password must be at least 6 characters', 'error'); return; }
 
   const btn = document.getElementById('signupBtn');
   btn.disabled = true; btn.textContent = 'Creating account...';
 
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  const { data, error } = await supabaseClient.auth.signUp({
+    email, password,
+    options: { data: { username: username } }
+  });
 
   btn.disabled = false; btn.textContent = 'Sign Up';
 
   if (error) {
     showMsg(error.message, 'error');
   } else {
-    showMsg('Account created! You can now log in.', 'success');
-    setTimeout(showLogin, 1500);
+    hideAllPanels();
+    document.getElementById('confirmEmailText').textContent = email;
+    document.getElementById('confirmScreen').style.display = 'block';
   }
 }
 
@@ -126,6 +215,26 @@ async function login() {
     localStorage.setItem('sb-token', data.session.access_token);
     localStorage.setItem('sb-user-email', data.user.email);
     window.location.href = '/app.html';
+  }
+}
+
+async function sendReset() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { showMsg('Please enter your email', 'error'); return; }
+
+  const btn = document.getElementById('forgotBtn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset-password.html'
+  });
+
+  btn.disabled = false; btn.textContent = 'Send Reset Link';
+
+  if (error) {
+    showMsg(error.message, 'error');
+  } else {
+    showMsg('Reset link sent! Check your inbox for instructions.', 'success');
   }
 }
 
