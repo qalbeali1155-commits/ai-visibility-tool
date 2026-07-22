@@ -70,6 +70,24 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
   .hero{padding:44px 16px 32px;}
 }
 </style>
+<script>
+function contactForAccess(){
+  var email = "brennoxdigitalmedia@gmail.com";
+  var note = document.getElementById("contactNote");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(email).then(function(){
+      note.textContent = "✅ Email copied: " + email;
+      note.style.color = "#065f46";
+      note.style.fontWeight = "700";
+    }).catch(function(){
+      note.textContent = "Email us: " + email;
+    });
+  } else {
+    note.textContent = "Email us: " + email;
+  }
+  try{ window.location.href = "mailto:" + email + "?subject=AEO%20Tracker%20-%20Client%20Access%20Request"; }catch(e){}
+}
+</script>
 </head>
 <body>
 
@@ -123,8 +141,8 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
         <li><i class="fa-solid fa-check"></i> 121-point GMB Geo-Grid tracker</li>
         <li><i class="fa-solid fa-check"></i> Dedicated support from our team</li>
       </ul>
-      <a class="plan-btn primary" href="mailto:brennoxdigitalmedia@gmail.com?subject=AEO%20Tracker%20-%20Client%20Access%20Request">Contact for Access</a>
-      <div class="plan-note">Granted manually after we onboard you</div>
+      <button class="plan-btn primary" onclick="contactForAccess()" style="border:none;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">Contact for Access</button>
+      <div class="plan-note" id="contactNote">Granted manually after we onboard you</div>
     </div>
 
     <div class="plan-card">
