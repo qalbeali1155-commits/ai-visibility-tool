@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing - AEO Tracker | AI Search Visibility Plans</title>
+<meta name="description" content="Simple, transparent pricing for AEO Tracker. Start free, upgrade to Client for daily tracking, or go Paid for unlimited AI search visibility scans.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:34px;height:34px;}
+.logo-mark svg{width:100%;height:100%;display:block;}
+.logo-name{font-size:17px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;}
+.logo-name span{color:#065f46;}
+.nav-cta{display:flex;align-items:center;gap:10px;}
+.nav-link{color:#374151;text-decoration:none;font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:8px;transition:all .15s;}
+.nav-link:hover{background:#f1f5f9;}
+.nav-btn{background:linear-gradient(135deg,#065f46,#047857);color:white;text-decoration:none;font-size:13.5px;font-weight:700;padding:9px 18px;border-radius:10px;box-shadow:0 4px 12px rgba(6,95,70,0.25);}
+.hero{background:linear-gradient(135deg,#065f46 0%,#047857 50%,#065f46 100%);padding:56px 24px 40px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(255,255,255,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(251,191,36,0.12) 0%,transparent 50%);}
+.hero-inner{position:relative;z-index:1;max-width:640px;margin:0 auto;}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.9);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;margin-bottom:16px;}
+.hero h1{color:white;font-size:36px;font-weight:800;margin-bottom:12px;letter-spacing:-1px;line-height:1.2;}
+.hero h1 span{color:#fbbf24;}
+.hero-sub{color:rgba(255,255,255,0.78);font-size:15px;line-height:1.6;}
+.plans-wrap{max-width:1080px;margin:-60px auto 60px;padding:0 24px;position:relative;z-index:2;}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.plan-card{background:white;border-radius:20px;padding:30px 26px;box-shadow:0 12px 32px rgba(15,23,42,0.1);border:1.5px solid #f1f5f9;display:flex;flex-direction:column;position:relative;}
+.plan-card.featured{border-color:#065f46;box-shadow:0 20px 48px rgba(6,95,70,0.2);}
+.plan-ribbon{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f97316,#ea580c);color:white;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:6px 16px;border-radius:20px;box-shadow:0 4px 10px rgba(249,115,22,0.35);white-space:nowrap;}
+.plan-name{font-size:13px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;}
+.plan-price{display:flex;align-items:baseline;gap:4px;margin-bottom:6px;}
+.plan-price .amt{font-size:38px;font-weight:800;color:#0f172a;letter-spacing:-1px;}
+.plan-price .per{font-size:13px;color:#94a3b8;font-weight:600;}
+.plan-desc{font-size:13px;color:#64748b;line-height:1.5;margin-bottom:22px;min-height:36px;}
+.plan-features{list-style:none;margin-bottom:24px;flex:1;}
+.plan-features li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:#374151;padding:8px 0;border-bottom:1px solid #f8fafc;}
+.plan-features li i{color:#065f46;font-size:12px;margin-top:3px;flex-shrink:0;}
+.plan-features li.muted{color:#94a3b8;}
+.plan-features li.muted i{color:#cbd5e1;}
+.plan-btn{display:block;text-align:center;padding:13px 20px;border-radius:12px;font-size:14.5px;font-weight:700;text-decoration:none;transition:all .2s;}
+.plan-btn.primary{background:linear-gradient(135deg,#065f46,#047857);color:white;box-shadow:0 4px 14px rgba(6,95,70,0.3);}
+.plan-btn.primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(6,95,70,0.35);}
+.plan-btn.outline{background:#f0fdf4;color:#065f46;border:1.5px solid #bbf7d0;}
+.plan-btn.outline:hover{background:#dcfce7;}
+.plan-note{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:10px;}
+.faq-wrap{max-width:760px;margin:0 auto 70px;padding:0 24px;}
+.faq-title{text-align:center;font-size:24px;font-weight:800;color:#0f172a;margin-bottom:30px;letter-spacing:-0.5px;}
+.faq-item{background:white;border:1px solid #f1f5f9;border-radius:14px;padding:18px 22px;margin-bottom:12px;}
+.faq-q{font-size:14.5px;font-weight:700;color:#0f172a;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.faq-q i{color:#065f46;font-size:13px;}
+.faq-a{font-size:13.5px;color:#64748b;line-height:1.6;padding-left:21px;}
+.site-footer{background:#0f172a;padding:36px 24px;text-align:center;}
+.site-footer p{color:rgba(255,255,255,0.4);font-size:12.5px;}
+@media(max-width:900px){
+  .plans-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto;}
+  .plan-card.featured{order:-1;}
+  .hero h1{font-size:28px;}
+  .plans-wrap{margin-top:-40px;}
+}
+@media(max-width:480px){
+  .navbar{padding:0 16px;}
+  .nav-link{display:none;}
+  .hero{padding:44px 16px 32px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#logoGrad)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+    <span class="logo-name">AEO <span>Tracker</span></span>
+  </div>
+  <div class="nav-cta">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/login.html">Log In</a>
+    <a class="nav-btn" href="/login.html">Get Started</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-pill"><i class="fa-solid fa-bolt"></i> Simple, Transparent Pricing</div>
+    <h1>Track Your AI Search Visibility <span>at Any Scale</span></h1>
+    <p class="hero-sub">Start free, upgrade when you need more daily scans across AI Visibility, Brand Sentiment, Local AI, and our 121-point GMB Geo-Grid tracker.</p>
+  </div>
+</div>
+
+<div class="plans-wrap">
+  <div class="plans-grid">
+
+    <div class="plan-card">
+      <div class="plan-name"><i class="fa-solid fa-seedling"></i> Free</div>
+      <div class="plan-price"><span class="amt">$0</span><span class="per">/ forever</span></div>
+      <div class="plan-desc">Try every tool once and see the value before you commit to anything.</div>
+      <ul class="plan-features">
+        <li><i class="fa-solid fa-check"></i> 5 searches total (one-time, no daily reset)</li>
+        <li><i class="fa-solid fa-check"></i> Full access to all 6 AEO tools</li>
+        <li><i class="fa-solid fa-check"></i> Search history saved to your account</li>
+        <li class="muted"><i class="fa-solid fa-xmark"></i> No daily refresh</li>
+        <li class="muted"><i class="fa-solid fa-xmark"></i> No priority support</li>
+      </ul>
+      <a class="plan-btn outline" href="/login.html">Start Free</a>
+      <div class="plan-note">No credit card required</div>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-ribbon">By Invitation</div>
+      <div class="plan-name"><i class="fa-solid fa-briefcase"></i> Client</div>
+      <div class="plan-price"><span class="amt">Free</span><span class="per">for onboarded clients</span></div>
+      <div class="plan-desc">Reserved for businesses we personally work with — not available as public self-signup.</div>
+      <ul class="plan-features">
+        <li><i class="fa-solid fa-check"></i> 20 searches every day</li>
+        <li><i class="fa-solid fa-check"></i> Full access to all 6 AEO tools</li>
+        <li><i class="fa-solid fa-check"></i> Full search history + report exports</li>
+        <li><i class="fa-solid fa-check"></i> 121-point GMB Geo-Grid tracker</li>
+        <li><i class="fa-solid fa-check"></i> Dedicated support from our team</li>
+      </ul>
+      <a class="plan-btn primary" href="mailto:brennoxdigitalmedia@gmail.com?subject=AEO%20Tracker%20-%20Client%20Access%20Request">Contact for Access</a>
+      <div class="plan-note">Granted manually after we onboard you</div>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name"><i class="fa-solid fa-crown"></i> Paid</div>
+      <div class="plan-price"><span class="amt">$49</span><span class="per">/ month</span></div>
+      <div class="plan-desc">Unlimited scans for agencies managing multiple brands and locations.</div>
+      <ul class="plan-features">
+        <li><i class="fa-solid fa-check"></i> Unlimited searches — no daily cap</li>
+        <li><i class="fa-solid fa-check"></i> Full access to all 6 AEO tools</li>
+        <li><i class="fa-solid fa-check"></i> Full search history + report exports</li>
+        <li><i class="fa-solid fa-check"></i> 121-point GMB Geo-Grid tracker</li>
+        <li><i class="fa-solid fa-check"></i> Priority support</li>
+      </ul>
+      <a class="plan-btn outline" href="/login.html">Get Started</a>
+      <div class="plan-note">Sign up free, then message us to upgrade</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="faq-wrap">
+  <div class="faq-title">Frequently Asked Questions</div>
+  <div class="faq-item">
+    <div class="faq-q"><i class="fa-solid fa-circle-question"></i> Do Free searches reset daily?</div>
+    <div class="faq-a">No — the Free plan gives you 5 searches total, one time, tied to your email. Once used, you'll need to upgrade to Client or Paid to keep scanning.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q"><i class="fa-solid fa-circle-question"></i> How do I get Client access?</div>
+    <div class="faq-a">Client access is reserved for businesses we personally onboard — it's not a public self-signup plan. Reach out to us and we'll set it up for you directly.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q"><i class="fa-solid fa-circle-question"></i> How do I upgrade to Paid?</div>
+    <div class="faq-a">Sign up for a free account first, then contact us to move to the Paid plan. Your plan is activated on our end and takes effect immediately.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q"><i class="fa-solid fa-circle-question"></i> What counts as one "search"?</div>
+    <div class="faq-a">Each report you generate — AI Visibility, Brand Sentiment, Why Not Ranking, Local AI, Citation Score, or a Geo-Grid scan — counts as one search against your plan.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q"><i class="fa-solid fa-circle-question"></i> Can I cancel anytime?</div>
+    <div class="faq-a">Yes, there's no lock-in contract. Message us anytime to downgrade or cancel your plan.</div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p>&copy; 2026 AEO Tracker. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

@@ -33,15 +33,33 @@ async function getTodayUsageCount(userId) {
   return count || 0;
 }
 
+async function getTotalUsageCount(userId) {
+  const { count } = await supabaseAdmin.from('search_history').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+  return count || 0;
+}
+
 async function enforceAccess(req, res) {
   const user = await getUserFromToken(req);
   if (!user) { res.status(401).json({ error: 'Not logged in' }); return null; }
   const access = await getOrCreateAccess(user.id, user.email);
   if (access.is_admin || access.plan === 'paid') return user;
+
+  // Free plan: one-time lifetime cap (no daily reset)
+  if (access.plan === 'free') {
+    const used = await getTotalUsageCount(user.id);
+    const limit = access.daily_limit;
+    if (used >= limit) {
+      res.status(403).json({ error: `You've used all ${limit} free searches on the Free plan. Upgrade to Client (20/day) or Paid (unlimited) to keep going.` });
+      return null;
+    }
+    return user;
+  }
+
+  // Client (and any other plan): daily reset
   const limit = access.daily_limit;
   const used = await getTodayUsageCount(user.id);
   if (used >= limit) {
-    res.status(403).json({ error: `Daily limit reached (${used}/${limit} on the ${access.plan} plan). Try again tomorrow, or ask about upgrading your plan.` });
+    res.status(403).json({ error: `Daily limit reached (${used}/${limit} on the ${access.plan} plan). Try again tomorrow, or upgrade to Paid for unlimited searches.` });
     return null;
   }
   return user;
@@ -398,13 +416,25 @@ app.get('/api/check-access', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Not logged in' });
   const access = await getOrCreateAccess(user.id, user.email);
-  const used = await getTodayUsageCount(user.id);
+  const unlimited = access.is_admin || access.plan === 'paid';
+  let used = 0;
+  let limitType = 'daily';
+  if (!unlimited) {
+    if (access.plan === 'free') {
+      used = await getTotalUsageCount(user.id);
+      limitType = 'total';
+    } else {
+      used = await getTodayUsageCount(user.id);
+      limitType = 'daily';
+    }
+  }
   res.json({
     plan: access.plan,
     daily_limit: access.daily_limit,
     is_admin: access.is_admin,
     used_today: used,
-    unlimited: access.is_admin || access.plan === 'paid'
+    limit_type: limitType,
+    unlimited
   });
 });
 

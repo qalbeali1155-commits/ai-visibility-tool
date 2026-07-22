@@ -498,7 +498,8 @@ async function refreshUsageBadge(){
       badge.textContent = (info.is_admin ? 'Admin · Unlimited' : 'Unlimited');
       pill.classList.remove('limit');
     } else {
-      badge.textContent = info.used_today + '/' + info.daily_limit + ' today';
+      var label = info.limit_type === 'total' ? 'total' : 'today';
+      badge.textContent = info.used_today + '/' + info.daily_limit + ' ' + label;
       pill.classList.toggle('limit', info.used_today >= info.daily_limit);
     }
     if(info.is_admin){
