@@ -558,12 +558,12 @@ async function openHistory() {
     }
     var html = '';
     items.forEach(function(item, idx) {
-      var label = item.keyword ? '"' + item.keyword + '"' : '';
-      var target = item.domain ? item.domain : '';
-      var extra = item.city ? ' in ' + item.city : '';
+      var label = item.keyword ? '"' + escapeHtml(item.keyword) + '"' : '';
+      var target = item.domain ? escapeHtml(item.domain) : '';
+      var extra = item.city ? ' in ' + escapeHtml(item.city) : '';
       var date = new Date(item.created_at).toLocaleString();
       html += '<div class="history-item"><div class="history-item-top">' +
-        '<div><span class="history-type">' + item.tool_type + '</span>' +
+        '<div><span class="history-type">' + escapeHtml(item.tool_type) + '</span>' +
         '<div class="history-text">' + target + (label ? ' &middot; ' + label : '') + extra + '</div>' +
         '<div class="history-date">' + date + '</div></div>' +
         '<div style="display:flex;gap:4px;flex-shrink:0;">' +
@@ -584,7 +584,7 @@ function closeHistory() {
 function viewHistoryItem(idx) {
   var item = window.historyItems[idx];
   if (!item) return;
-  var title = item.tool_type + (item.domain ? ' &middot; ' + item.domain : '') + (item.keyword ? ' &middot; "' + item.keyword + '"' : '');
+  var title = escapeHtml(item.tool_type) + (item.domain ? ' &middot; ' + escapeHtml(item.domain) : '') + (item.keyword ? ' &middot; "' + escapeHtml(item.keyword) + '"' : '');
   document.getElementById('viewModalTitle').innerHTML = '<i class="fa-solid fa-file-lines" style="color:#065f46;margin-right:8px;"></i> ' + title;
   document.getElementById('viewModalBody').textContent = item.full_response || 'No detailed report saved for this entry.';
   document.getElementById('viewModal').classList.add('open');
@@ -601,6 +601,10 @@ async function deleteHistory(id) {
 }
 
 var charts={};
+function escapeHtml(str){
+  if(str===null||str===undefined)return "";
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
 function toggleMenu(){document.getElementById("mobileMenu").classList.toggle("open");}
 function switchTab(tab,el){
   document.querySelectorAll(".nav-tab,.mobile-tab").forEach(function(t){t.classList.remove("active");});
@@ -613,9 +617,10 @@ function switchTab(tab,el){
 function setLoad(id){document.getElementById(id).innerHTML='<div class="loading"><div class="spin"></div><p>Fetching live Google data...</p><small>Running AI analysis on real search results</small></div>';}
 function sRow(name,val,color,you){
   var c=color||"#065f46";
-  return '<div class="score-row"><div class="score-info"><span class="score-name">'+(you?'<strong>'+name+'</strong>&nbsp;<span style="background:#f0fdf4;color:#065f46;font-size:10px;padding:2px 7px;border-radius:10px;">You</span>':name)+'</span><span class="score-pct" style="color:'+c+'">'+val+'%</span></div><div class="bar-bg"><div class="bar-fill" style="width:'+val+'%;background:'+c+'"></div></div></div>';
+  var safeName=escapeHtml(name);
+  return '<div class="score-row"><div class="score-info"><span class="score-name">'+(you?'<strong>'+safeName+'</strong>&nbsp;<span style="background:#f0fdf4;color:#065f46;font-size:10px;padding:2px 7px;border-radius:10px;">You</span>':safeName)+'</span><span class="score-pct" style="color:'+c+'">'+val+'%</span></div><div class="bar-bg"><div class="bar-fill" style="width:'+val+'%;background:'+c+'"></div></div></div>';
 }
-function tip(txt,n,color){return '<div class="tip"><div class="tip-n" style="background:'+(color||"#065f46")+'">'+n+'</div><div>'+txt+'</div></div>';}
+function tip(txt,n,color){return '<div class="tip"><div class="tip-n" style="background:'+(color||"#065f46")+'">'+n+'</div><div>'+escapeHtml(txt)+'</div></div>';}
 function donut(id,labels,vals,colors){
   if(charts[id]){charts[id].destroy();}
   var ctx=document.getElementById(id);if(!ctx)return;
@@ -664,13 +669,13 @@ async function runVisibility(){
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#f0fdf4;"><i class="fa-solid fa-magnifying-glass" style="color:#065f46;"></i></div>'+
-      '<div><div class="report-title">AI Visibility Report</div><div class="report-sub">Keyword: "'+kw+'" &nbsp;&middot;&nbsp; Domain: '+dom+'</div></div>'+
+      '<div><div class="report-title">AI Visibility Report</div><div class="report-sub">Keyword: "'+escapeHtml(kw)+'" &nbsp;&middot;&nbsp; Domain: '+escapeHtml(dom)+'</div></div>'+
       '<div class="report-badge">'+(mentioned?'<span class="badge b-green"><i class="fa-solid fa-check"></i> Mentioned</span>':'<span class="badge b-red"><i class="fa-solid fa-xmark"></i> Not Mentioned</span>')+'</div>'+
       '</div>'+
-      (visM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Visibility Status</div><div class="insight">'+visM[1].trim()+'</div></div>':'')+
+      (visM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Visibility Status</div><div class="insight">'+escapeHtml(visM[1].trim())+'</div></div>':'')+
       (recs?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-trophy"></i> Top 5 AI Recommendations</div>'+recs+'</div>':'')+
       (scores?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Visibility Scores</div>'+scores+'</div>':'')+
-      (insM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Competitor Insight</div><div class="insight">'+insM[1].trim()+'</div></div>':'')+
+      (insM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Competitor Insight</div><div class="insight">'+escapeHtml(insM[1].trim())+'</div></div>':'')+
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (fixes?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fixes+'</div>':'')+
       '</div>';
@@ -720,7 +725,7 @@ async function runSentiment(){
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#fef9c3;"><i class="fa-solid fa-heart-pulse" style="color:#a16207;"></i></div>'+
-      '<div><div class="report-title">Brand Sentiment Analysis</div><div class="report-sub">'+dom+'</div></div>'+
+      '<div><div class="report-title">Brand Sentiment Analysis</div><div class="report-sub">'+escapeHtml(dom)+'</div></div>'+
       '<div class="report-badge"><span class="badge '+bClass+'">'+sent+'</span></div>'+
       '</div>'+
       '<div class="two-col">'+
@@ -728,7 +733,7 @@ async function runSentiment(){
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-pie"></i> Emotion Breakdown</div><div class="chart-wrap"><canvas id="sChart"></canvas></div></div>'+
       '</div>'+
       (wHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-tags"></i> Brand Words</div><div class="tags">'+wHtml+'</div></div>':'')+
-      (descM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Brand Description</div><div class="insight">'+descM[1].trim()+'</div></div>':'')+
+      (descM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Brand Description</div><div class="insight">'+escapeHtml(descM[1].trim())+'</div></div>':'')+
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Improvement Tips</div>'+tHtml+'</div>':'')+
       '</div>';
@@ -774,12 +779,12 @@ async function runWhyNotRanking(){
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#fee2e2;"><i class="fa-solid fa-magnifying-glass-chart" style="color:#dc2626;"></i></div>'+
-      '<div><div class="report-title">Gap Analysis Report</div><div class="report-sub">'+dom+' &nbsp;&middot;&nbsp; "'+kw+'"</div></div>'+
+      '<div><div class="report-title">Gap Analysis Report</div><div class="report-sub">'+escapeHtml(dom)+' &nbsp;&middot;&nbsp; "'+escapeHtml(kw)+'"</div></div>'+
       '<div class="report-badge"><span class="badge '+bClass+'">'+status+'</span></div>'+
       '</div>'+
       (rHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+rHtml+'</div>':'')+
       (fHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fHtml+'</div>':'')+
-      (prM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-star"></i> Priority Action</div><div class="priority"><div class="p-label">Do This First</div><div class="p-text">'+prM[1].trim()+'</div></div></div>':'')+
+      (prM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-star"></i> Priority Action</div><div class="priority"><div class="p-label">Do This First</div><div class="p-text">'+escapeHtml(prM[1].trim())+'</div></div></div>':'')+
       '</div>';
     saveToHistory('Why Not Ranking', kw, dom, null, status, t);
   }catch(e){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
@@ -821,20 +826,20 @@ async function runLocal(){
       '<div class="kpi-grid">'+
       '<div class="kpi"><div class="kpi-icon" style="background:#ffedd5;"><i class="fa-solid fa-location-dot" style="color:#f97316;font-size:18px;"></i></div><div class="kpi-val">'+status+'</div><div class="kpi-label">Local Visibility</div></div>'+
       '<div class="kpi"><div class="kpi-icon" style="background:#f0fdf4;"><i class="fa-solid fa-chart-bar" style="color:#065f46;font-size:18px;"></i></div><div class="kpi-val">'+sc+'%</div><div class="kpi-label">Local Score</div></div>'+
-      '<div class="kpi"><div class="kpi-icon" style="background:#fef9c3;"><i class="fa-solid fa-city" style="color:#a16207;font-size:18px;"></i></div><div class="kpi-val" style="font-size:14px;">'+city+'</div><div class="kpi-label">City</div></div>'+
+      '<div class="kpi"><div class="kpi-icon" style="background:#fef9c3;"><i class="fa-solid fa-city" style="color:#a16207;font-size:18px;"></i></div><div class="kpi-val" style="font-size:14px;">'+escapeHtml(city)+'</div><div class="kpi-label">City</div></div>'+
       '<div class="kpi"><div class="kpi-icon" style="background:#dbeafe;"><i class="fa-solid fa-building" style="color:#1d4ed8;font-size:18px;"></i></div><div class="kpi-val">3</div><div class="kpi-label">Local Rivals</div></div>'+
       '</div>'+
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#ffedd5;"><i class="fa-solid fa-location-crosshairs" style="color:#f97316;"></i></div>'+
-      '<div><div class="report-title">Local AI Visibility Report</div><div class="report-sub">'+dom+' in '+city+'</div></div>'+
+      '<div><div class="report-title">Local AI Visibility Report</div><div class="report-sub">'+escapeHtml(dom)+' in '+escapeHtml(city)+'</div></div>'+
       '<div class="report-badge"><span class="badge '+bClass+'">'+status+'</span></div>'+
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Local Score</div>'+sRow(dom,sc,"#065f46",true)+'</div>'+
       (cHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-users"></i> Top Local Competitors</div>'+cHtml+'</div>':'')+
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Local SEO Tips</div>'+tHtml+'</div>':'')+
-      (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Local Insight</div><div class="insight">'+inM[1].trim()+'</div></div>':'')+
+      (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Local Insight</div><div class="insight">'+escapeHtml(inM[1].trim())+'</div></div>':'')+
       '</div>';
     saveToHistory('Local AI', kw, dom, city, status + ' (' + sc + '%)', t);
   }catch(e){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
@@ -883,14 +888,14 @@ async function runCitation(){
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#dbeafe;"><i class="fa-solid fa-link" style="color:#1d4ed8;"></i></div>'+
-      '<div><div class="report-title">AI Citation Score Report</div><div class="report-sub">'+dom+' &nbsp;&middot;&nbsp; "'+kw+'"</div></div>'+
+      '<div><div class="report-title">AI Citation Score Report</div><div class="report-sub">'+escapeHtml(dom)+' &nbsp;&middot;&nbsp; "'+escapeHtml(kw)+'"</div></div>'+
       '<div class="report-badge"><span class="badge '+sBadge+'">'+strength+'</span></div>'+
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-bar"></i> Citation Score</div>'+sRow(dom,sc,"#1d4ed8",true)+'</div>'+
       (ctHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-bookmark"></i> Cited For</div>'+ctHtml+'</div>':'')+
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (imHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-arrow-trend-up"></i> How to Improve</div>'+imHtml+'</div>':'')+
-      (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Citation Insight</div><div class="insight">'+inM[1].trim()+'</div></div>':'')+
+      (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Citation Insight</div><div class="insight">'+escapeHtml(inM[1].trim())+'</div></div>':'')+
       '</div>';
     saveToHistory('Citation Score', kw, dom, null, sc + '% - ' + strength, t);
   }catch(e){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
@@ -914,7 +919,7 @@ function searchBusiness(){
       bizSearchResults=d.results||[];
       if(!bizSearchResults.length){dd.innerHTML='<div class="biz-option"><div class="biz-option-meta">No matches found — try a different spelling or add your city.</div></div>';dd.classList.add("open");return;}
       dd.innerHTML=bizSearchResults.map(function(p,i){
-        return '<div class="biz-option" onclick="selectBusiness('+i+')"><div class="biz-option-name">'+p.title+'</div><div class="biz-option-meta">'+(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+')':'')+'</div></div>';
+        return '<div class="biz-option" onclick="selectBusiness('+i+')"><div class="biz-option-name">'+escapeHtml(p.title)+'</div><div class="biz-option-meta">'+escapeHtml(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+')':'')+'</div></div>';
       }).join("");
       dd.classList.add("open");
     }catch(e){console.log("Business search failed",e);}
@@ -928,7 +933,7 @@ function selectBusiness(i){
   document.getElementById("g-business-dropdown").classList.remove("open");
   var card=document.getElementById("g-business-card");
   card.style.display="flex";
-  card.innerHTML='<div><div class="biz-card-name"><i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>'+p.title+'</div><div class="biz-card-meta">'+(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+' reviews)':'')+'</div></div><button class="biz-card-clear" onclick="clearBusiness()" title="Change business"><i class="fa-solid fa-xmark"></i></button>';
+  card.innerHTML='<div><div class="biz-card-name"><i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>'+escapeHtml(p.title)+'</div><div class="biz-card-meta">'+escapeHtml(p.address||'')+(p.rating?' &middot; '+p.rating+'\u2605':'')+(p.ratingCount?' ('+p.ratingCount+' reviews)':'')+'</div></div><button class="biz-card-clear" onclick="clearBusiness()" title="Change business"><i class="fa-solid fa-xmark"></i></button>';
 }
 function clearBusiness(){
   document.getElementById("g-business").value="";
@@ -974,7 +979,8 @@ async function runGeoGrid(){
 
     var compHtml="";
     compList.forEach(function(c,i){
-      compHtml+='<div class="competitor-row"><div class="competitor-rank">#'+(i+1)+'</div><div class="competitor-name" title="'+c.name+'">'+c.name+'</div><div class="competitor-app">avg '+c.avgRank+' &middot; '+c.appearances+'x</div></div>';
+      var safeName=escapeHtml(c.name);
+      compHtml+='<div class="competitor-row"><div class="competitor-rank">#'+(i+1)+'</div><div class="competitor-name" title="'+safeName+'">'+safeName+'</div><div class="competitor-app">avg '+c.avgRank+' &middot; '+c.appearances+'x</div></div>';
     });
     if(!compHtml)compHtml='<div class="history-empty">No competitors found in this grid.</div>';
 
@@ -988,7 +994,7 @@ async function runGeoGrid(){
       '<div class="report">'+
       '<div class="report-head">'+
       '<div class="report-icon" style="background:#dbeafe;"><i class="fa-solid fa-map-location-dot" style="color:#1d4ed8;"></i></div>'+
-      '<div><div class="report-title">GMB Geo-Grid Rank Map</div><div class="report-sub">'+biz+' &nbsp;&middot;&nbsp; "'+kw+'" &nbsp;&middot;&nbsp; '+d.radiusKm+'km radius near '+loc+' &nbsp;&middot;&nbsp; '+(stats.total||pts.length)+' points scanned</div></div>'+
+      '<div><div class="report-title">GMB Geo-Grid Rank Map</div><div class="report-sub">'+escapeHtml(biz)+' &nbsp;&middot;&nbsp; "'+escapeHtml(kw)+'" &nbsp;&middot;&nbsp; '+d.radiusKm+'km radius near '+escapeHtml(loc)+' &nbsp;&middot;&nbsp; '+(stats.total||pts.length)+' points scanned</div></div>'+
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-chart-simple"></i> Rank Distribution</div>'+
       '<div class="stat-bar-row"><div class="stat-bar-dot" style="background:#16a34a;"></div><div class="stat-bar-label">High</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+(stats.highPct||0)+'%;background:#16a34a;"></div></div><div class="stat-bar-pct" style="color:#16a34a;">'+(stats.highPct||0)+'%</div></div>'+
@@ -1016,7 +1022,7 @@ async function runGeoGrid(){
         if(p.competitors&&p.competitors.length){
           popupHtml+='<div style="margin-top:6px;font-size:12px;color:#374151;"><strong>Top competitors here:</strong></div>';
           p.competitors.forEach(function(c,i){
-            popupHtml+='<div style="font-size:12px;padding:2px 0;">'+(i+1)+'. '+c.name+(c.rating?' ('+c.rating+'\u2605)':'')+'</div>';
+            popupHtml+='<div style="font-size:12px;padding:2px 0;">'+(i+1)+'. '+escapeHtml(c.name)+(c.rating?' ('+c.rating+'\u2605)':'')+'</div>';
           });
         }
         popupHtml+='</div>';

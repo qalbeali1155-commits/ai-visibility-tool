@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
@@ -66,8 +68,55 @@ async function enforceAccess(req, res) {
 }
 
 const app = express();
-app.use(cors());
+
+// Security headers. CSP is left off because this app relies on inline <script>/<style>
+// throughout its pages — turning it on without a full rewrite would break the UI.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+
+// Only allow requests from our own site (plus localhost for local development).
+const ALLOWED_ORIGINS = [
+  'https://ai-visibility-tool-omega.vercel.app',
+  'http://localhost:3000'
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  }
+}));
+
 app.use(express.json());
+
+// General rate limit for all API routes — protects Groq/Serper credits and keeps
+// one runaway client from slowing the app down for everyone else.
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down and try again in a minute.' }
+});
+app.use('/api/', generalLimiter);
+
+// The Geo-Grid scan fires ~121 external API calls per request — needs a much
+// tighter limit so it can't be used to burn through Serper credits quickly.
+const geoGridLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Geo-Grid scans are limited to 3 every 10 minutes. Please wait and try again.' }
+});
+app.use('/api/geo-grid', geoGridLimiter);
+
+// Business search runs on every keystroke (debounced client-side), give it a bit more room.
+const businessSearchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 40,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/business-search', businessSearchLimiter);
 
 async function callGroq(prompt) {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -501,6 +550,15 @@ app.delete('/api/history/:id', async (req, res) => {
     .eq('user_id', user.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
+});
+
+// Catch-all: anything that throws unexpectedly returns a clean error instead of crashing.
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'Request blocked (CORS).' });
+  }
+  res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
 });
 
 const PORT = process.env.PORT || 3000;
