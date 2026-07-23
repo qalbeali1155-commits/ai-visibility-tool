@@ -189,6 +189,9 @@ app.post('/api/visibility', async (req, res) => {
     try {
         const searchData = await callSerper(keyword);
         const results = searchData.organic?.slice(0, 10).map((r, i) => `Rank ${i+1}: ${r.link} - ${r.title}`).join('\n') || 'No results';
+        if (results === 'No results') {
+            return res.status(404).json({ error: `We couldn't find any Google results for "${keyword}". Try a different or less specific keyword.` });
+        }
         const competitorScores = competitors ? competitors.split(',').map(c => `${c.trim()}: [0-100]%`).join('\n') : '';
         const prompt = `You are an AEO (Answer Engine Optimization) expert consultant. Analyze AI Search visibility for "${domain}" for keyword "${keyword}".
 Real Google Results:\n${results}\nCompetitors: ${competitors || 'none'}
@@ -235,6 +238,9 @@ app.post('/api/sentiment', async (req, res) => {
     try {
         const searchData = await callSerper(`${domain} reviews feedback`);
         const snippets = searchData.organic?.map(r => r.snippet).filter(Boolean).join('\n') || 'No data';
+        if (snippets === 'No data') {
+            return res.status(404).json({ error: `We couldn't find any Google results for "${domain}". Please check the domain is correct and has an online presence.` });
+        }
         const prompt = `You are a brand reputation and AEO expert. Analyze brand sentiment for "${domain}" from real Google snippets:\n${snippets}
 
 Respond in this EXACT format:
@@ -267,6 +273,9 @@ app.post('/api/whynotranking', async (req, res) => {
     try {
         const searchData = await callSerper(keyword);
         const top = searchData.organic?.slice(0, 5).map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
+        if (top === 'No data') {
+            return res.status(404).json({ error: `We couldn't find any Google results for "${keyword}". Try a different or less specific keyword.` });
+        }
         const prompt = `You are an SEO/AEO gap-analysis expert. Analyze why "${domain}" is not ranking for "${keyword}".
 Top Google Results:\n${top}
 
@@ -302,6 +311,9 @@ app.post('/api/local', async (req, res) => {
     try {
         const searchData = await callSerper(`${keyword} in ${city}`, 'places');
         const places = searchData.places?.map(p => `${p.title} - ${p.address} (${p.rating || 'N/A'} stars)`).join('\n') || 'No local data';
+        if (places === 'No local data') {
+            return res.status(404).json({ error: `We couldn't find any local businesses for "${keyword}" in "${city}". Please check the keyword and city are correct.` });
+        }
         const prompt = `You are a Local SEO/AEO expert. Analyze local AI visibility for "${domain}" in "${city}" for "${keyword}".
 Real Local Google Results:\n${places}
 
@@ -339,6 +351,9 @@ app.post('/api/citation', async (req, res) => {
     try {
         const searchData = await callSerper(`"${domain}" ${keyword} mentioned cited`);
         const results = searchData.organic?.map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
+        if (results === 'No data') {
+            return res.status(404).json({ error: `We couldn't find any Google results for "${domain}" related to "${keyword}". Please check the domain is correct.` });
+        }
         const prompt = `You are an authority/citation-building AEO expert. Analyze citation authority for "${domain}" regarding "${keyword}".
 Real Google Data:\n${results}
 
