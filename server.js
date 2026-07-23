@@ -137,6 +137,37 @@ async function callSerper(query, type = 'search') {
     return await response.json();
 }
 
+// Rejects anything that isn't a real-looking domain (e.g. "yoursite.com"), so
+// garbage or script-like input never reaches Serper/Groq and never burns a search credit.
+function isValidDomain(domain) {
+    if (!domain || typeof domain !== 'string') return false;
+    const cleaned = domain.trim().toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0]
+        .split('?')[0];
+    if (cleaned.length === 0 || cleaned.length > 253) return false;
+    const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+    return domainRegex.test(cleaned);
+}
+
+// General guard for free-text fields (keyword, city, business name, location).
+// Blocks obvious HTML/script injection attempts and empty/oversized input.
+function isSafeText(str, maxLen = 120) {
+    if (!str || typeof str !== 'string') return false;
+    const trimmed = str.trim();
+    if (trimmed.length === 0 || trimmed.length > maxLen) return false;
+    if (/[<>]/.test(trimmed)) return false;
+    return true;
+}
+
+function domainError(res) {
+    return res.status(400).json({ error: 'Please enter a valid domain (e.g. yoursite.com).' });
+}
+function textError(res, field) {
+    return res.status(400).json({ error: `Please enter a valid ${field}.` });
+}
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -152,6 +183,9 @@ app.post('/api/visibility', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { keyword, domain, competitors } = req.body;
+    if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
+    if (!isValidDomain(domain)) return domainError(res);
+    if (competitors && !isSafeText(competitors, 300)) return textError(res, 'competitors list');
     try {
         const searchData = await callSerper(keyword);
         const results = searchData.organic?.slice(0, 10).map((r, i) => `Rank ${i+1}: ${r.link} - ${r.title}`).join('\n') || 'No results';
@@ -197,6 +231,7 @@ app.post('/api/sentiment', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { domain } = req.body;
+    if (!isValidDomain(domain)) return domainError(res);
     try {
         const searchData = await callSerper(`${domain} reviews feedback`);
         const snippets = searchData.organic?.map(r => r.snippet).filter(Boolean).join('\n') || 'No data';
@@ -227,6 +262,8 @@ app.post('/api/whynotranking', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { keyword, domain } = req.body;
+    if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
+    if (!isValidDomain(domain)) return domainError(res);
     try {
         const searchData = await callSerper(keyword);
         const top = searchData.organic?.slice(0, 5).map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
@@ -259,6 +296,9 @@ app.post('/api/local', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { keyword, domain, city } = req.body;
+    if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
+    if (!isValidDomain(domain)) return domainError(res);
+    if (!isSafeText(city, 100)) return textError(res, 'city');
     try {
         const searchData = await callSerper(`${keyword} in ${city}`, 'places');
         const places = searchData.places?.map(p => `${p.title} - ${p.address} (${p.rating || 'N/A'} stars)`).join('\n') || 'No local data';
@@ -294,6 +334,8 @@ app.post('/api/citation', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { domain, keyword } = req.body;
+    if (!isValidDomain(domain)) return domainError(res);
+    if (!isSafeText(keyword, 150)) return textError(res, 'keyword/topic');
     try {
         const searchData = await callSerper(`"${domain}" ${keyword} mentioned cited`);
         const results = searchData.organic?.map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
@@ -341,6 +383,8 @@ app.post('/api/business-search', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Not logged in' });
     const { query, location } = req.body;
     if (!query || query.trim().length < 2) return res.json({ results: [] });
+    if (!isSafeText(query, 120)) return textError(res, 'business name');
+    if (location && !isSafeText(location, 120)) return textError(res, 'location');
     try {
         const q = location ? `${query} ${location}` : query;
         const response = await fetch('https://google.serper.dev/places', {
@@ -369,6 +413,9 @@ app.post('/api/geo-grid', async (req, res) => {
     const user = await enforceAccess(req, res);
     if (!user) return;
     const { businessName, keyword, location, radiusKm } = req.body;
+    if (!isSafeText(businessName, 150)) return textError(res, 'business name');
+    if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
+    if (!isSafeText(location, 150)) return textError(res, 'location');
     try {
         const center = await geocodeAddress(location);
         if (!center) return res.status(400).json({ error: 'Could not find that location. Try a more specific address or city name.' });
