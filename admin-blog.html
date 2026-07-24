@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEO Tracker - Blog Editor (Admin)</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:34px;height:34px;}
+.logo-mark svg{width:100%;height:100%;display:block;}
+.logo-name{font-size:17px;font-weight:800;color:#0f172a;}
+.logo-name span{color:#065f46;}
+.back-link{color:#065f46;font-size:13px;font-weight:600;text-decoration:none;}
+.wrap{max-width:1000px;margin:0 auto;padding:32px 20px 70px;}
+.page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.page-head h1{font-size:22px;font-weight:800;}
+.btn{padding:10px 18px;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;border:none;font-family:'Inter',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,#065f46,#047857);color:white;}
+.btn-outline{background:#f0fdf4;color:#065f46;border:1.5px solid #bbf7d0;}
+.btn-danger{background:#fee2e2;color:#dc2626;}
+.post-row{background:white;border:1px solid #f1f5f9;border-radius:14px;padding:16px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:14px;}
+.post-row-title{font-weight:700;font-size:14.5px;color:#0f172a;}
+.post-row-meta{font-size:12px;color:#94a3b8;margin-top:3px;}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-pub{background:#dcfce7;color:#15803d;}
+.badge-draft{background:#f1f5f9;color:#64748b;}
+.post-actions{display:flex;gap:8px;flex-shrink:0;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.icon-edit{background:#f0fdf4;color:#065f46;}
+.icon-del{background:#fee2e2;color:#dc2626;}
+.editor-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.editor-modal.open{display:flex;}
+.editor-panel{background:white;border-radius:20px;max-width:760px;width:100%;padding:28px;}
+.editor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.editor-head h2{font-size:18px;font-weight:800;}
+.close-btn{background:#f1f5f9;border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:#64748b;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:#f8fafc;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#065f46;background:white;}
+.slug-preview{font-size:11.5px;color:#94a3b8;margin-top:5px;}
+.toolbar{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;}
+.toolbar button{width:32px;height:32px;border:1px solid #e2e8f0;background:white;border-radius:7px;cursor:pointer;font-size:12.5px;color:#374151;}
+.toolbar button:hover{background:#f1f5f9;}
+.editor-content{min-height:260px;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.7;background:white;}
+.editor-content:focus{outline:none;border-color:#065f46;}
+.editor-content h3{font-size:16px;color:#065f46;margin:10px 0 6px;}
+.publish-row{display:flex;align-items:center;gap:10px;margin:18px 0;}
+.publish-row input{width:auto;}
+.editor-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:10px;}
+.empty-state{text-align:center;padding:60px 20px;color:#94a3b8;}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/app.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#g)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="g" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+    <span class="logo-name">AEO <span>Tracker</span></span>
+  </a>
+  <a href="/app.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to App</a>
+</nav>
+
+<div class="wrap">
+  <div class="page-head">
+    <h1><i class="fa-solid fa-pen-nib" style="color:#065f46;margin-right:8px;"></i>Blog Editor</h1>
+    <button class="btn btn-primary" onclick="openEditor()"><i class="fa-solid fa-plus"></i> New Post</button>
+  </div>
+  <div id="postList"><div class="empty-state">Loading...</div></div>
+</div>
+
+<div class="editor-modal" id="editorModal">
+  <div class="editor-panel">
+    <div class="editor-head">
+      <h2 id="editorTitle">New Post</h2>
+      <button class="close-btn" onclick="closeEditor()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <input type="hidden" id="postId">
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="postTitle" placeholder="e.g. How to Check if ChatGPT Mentions Your Business" oninput="updateSlugPreview()">
+      <div class="slug-preview">URL: /blog/<span id="slugPreview">your-post-title</span></div>
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="postCategory">
+        <option>AEO Basics</option>
+        <option>Brand Strategy</option>
+        <option>Local SEO</option>
+        <option>Trust Signals</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Excerpt (short summary shown on the blog listing)</label>
+      <textarea id="postExcerpt" rows="2" placeholder="One or two sentences that make someone want to click..."></textarea>
+    </div>
+    <div class="field">
+      <label>Content</label>
+      <div class="toolbar">
+        <button type="button" onclick="fmt('bold')" title="Bold"><b>B</b></button>
+        <button type="button" onclick="fmt('italic')" title="Italic"><i>I</i></button>
+        <button type="button" onclick="fmtHeading()" title="Heading">H3</button>
+        <button type="button" onclick="fmt('insertUnorderedList')" title="Bullet list"><i class="fa-solid fa-list-ul"></i></button>
+        <button type="button" onclick="fmtLink()" title="Link"><i class="fa-solid fa-link"></i></button>
+        <button type="button" onclick="fmt('formatBlock',false,'p')" title="Paragraph">P</button>
+      </div>
+      <div class="editor-content" id="postContent" contenteditable="true"></div>
+    </div>
+    <div class="field">
+      <label>Read Time</label>
+      <input type="text" id="postReadTime" placeholder="5 min read" value="5 min read">
+    </div>
+    <div class="publish-row">
+      <input type="checkbox" id="postPublished">
+      <label for="postPublished" style="text-transform:none;font-size:13px;color:#374151;">Publish immediately (visible to everyone + indexable by Google)</label>
+    </div>
+    <div class="editor-footer">
+      <button class="btn btn-outline" onclick="closeEditor()">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="savePost()">Save Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://wdsdvumxzquyutyjukif.supabase.co";
+const SUPABASE_KEY = "sb_publishable_MuWa2m4uHAnM6WIoDVtR1g_KmAyLrYT";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var allPosts = [];
+
+async function getToken(){
+  const { data } = await supabaseClient.auth.getSession();
+  return data.session ? data.session.access_token : null;
+}
+
+(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) { window.location.href = '/login.html'; return; }
+  loadPosts();
+})();
+
+async function loadPosts(){
+  try{
+    var token = await getToken();
+    var r = await fetch('/api/admin/blog/posts', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (r.status === 403) { document.getElementById('postList').innerHTML = '<div class="empty-state">Admin access only.</div>'; return; }
+    var d = await r.json();
+    allPosts = d.posts || [];
+    renderList();
+  }catch(e){ document.getElementById('postList').innerHTML = '<div class="empty-state">Could not load posts.</div>'; }
+}
+
+function renderList(){
+  var el = document.getElementById('postList');
+  if (!allPosts.length) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:28px;display:block;margin-bottom:10px;"></i>No posts yet. Click "New Post" to write your first one.</div>'; return; }
+  el.innerHTML = allPosts.map(function(p, idx){
+    var date = new Date(p.created_at).toLocaleDateString();
+    return '<div class="post-row">' +
+      '<div><div class="post-row-title">' + p.title + ' ' + (p.published ? '<span class="badge badge-pub">Published</span>' : '<span class="badge badge-draft">Draft</span>') + '</div>' +
+      '<div class="post-row-meta">' + p.category + ' &middot; ' + date + ' &middot; /blog/' + p.slug + '</div></div>' +
+      '<div class="post-actions">' +
+      '<button class="icon-btn icon-edit" onclick="editPost(' + idx + ')" title="Edit"><i class="fa-solid fa-pen"></i></button>' +
+      '<button class="icon-btn icon-del" onclick="deletePost(\'' + p.id + '\')" title="Delete"><i class="fa-solid fa-trash"></i></button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function slugifyPreview(title){
+  return title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-') || 'your-post-title';
+}
+function updateSlugPreview(){
+  document.getElementById('slugPreview').textContent = slugifyPreview(document.getElementById('postTitle').value);
+}
+
+function openEditor(){
+  document.getElementById('editorTitle').textContent = 'New Post';
+  document.getElementById('postId').value = '';
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postCategory').value = 'AEO Basics';
+  document.getElementById('postExcerpt').value = '';
+  document.getElementById('postContent').innerHTML = '';
+  document.getElementById('postReadTime').value = '5 min read';
+  document.getElementById('postPublished').checked = false;
+  updateSlugPreview();
+  document.getElementById('editorModal').classList.add('open');
+}
+function closeEditor(){ document.getElementById('editorModal').classList.remove('open'); }
+
+function editPost(idx){
+  var p = allPosts[idx];
+  document.getElementById('editorTitle').textContent = 'Edit Post';
+  document.getElementById('postId').value = p.id;
+  document.getElementById('postTitle').value = p.title;
+  document.getElementById('postCategory').value = p.category;
+  document.getElementById('postExcerpt').value = p.excerpt || '';
+  document.getElementById('postContent').innerHTML = p.content;
+  document.getElementById('postReadTime').value = p.read_time || '5 min read';
+  document.getElementById('postPublished').checked = !!p.published;
+  document.getElementById('slugPreview').textContent = p.slug;
+  document.getElementById('editorModal').classList.add('open');
+}
+
+async function deletePost(id){
+  if (!confirm('Delete this post permanently?')) return;
+  var token = await getToken();
+  await fetch('/api/admin/blog/posts/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+  loadPosts();
+}
+
+function fmt(cmd, ui, val){ document.getElementById('postContent').focus(); document.execCommand(cmd, ui || false, val || null); }
+function fmtHeading(){ fmt('formatBlock', false, 'h3'); }
+function fmtLink(){
+  var url = prompt('Enter URL:');
+  if (url) fmt('createLink', false, url);
+}
+
+async function savePost(){
+  var title = document.getElementById('postTitle').value.trim();
+  var content = document.getElementById('postContent').innerHTML.trim();
+  if (!title) { alert('Please enter a title'); return; }
+  if (!content) { alert('Please write some content'); return; }
+
+  var id = document.getElementById('postId').value;
+  var body = {
+    title: title,
+    excerpt: document.getElementById('postExcerpt').value.trim(),
+    content: content,
+    category: document.getElementById('postCategory').value,
+    read_time: document.getElementById('postReadTime').value.trim() || '5 min read',
+    published: document.getElementById('postPublished').checked
+  };
+
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  var token = await getToken();
+  var url = id ? '/api/admin/blog/posts/' + id : '/api/admin/blog/posts';
+  var method = id ? 'PUT' : 'POST';
+
+  try{
+    var r = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(body) });
+    var d = await r.json();
+    if (!r.ok) { alert(d.error || 'Could not save post'); btn.disabled = false; btn.textContent = 'Save Post'; return; }
+    closeEditor();
+    loadPosts();
+  }catch(e){ alert('Error: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Save Post';
+}
+</script>
+</body>
+</html>

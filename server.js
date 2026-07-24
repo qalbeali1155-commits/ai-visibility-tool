@@ -566,6 +566,254 @@ app.post('/api/geo-grid', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// ===================== BLOG SYSTEM =====================
+
+function slugify(title) {
+    return title.toLowerCase().trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 100);
+}
+
+function blogPageShell({ title, description, bodyHtml, canonicalPath }) {
+    const canonical = `https://ai-visibility-tool-omega.vercel.app${canonicalPath}`;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${canonical}">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23065f46'/%3E%3Cpath d='M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='76' cy='24' r='7' fill='%23f97316'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
+.navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:sticky;top:0;z-index:10;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;}
+.logo-mark svg{width:100%;height:100%;display:block;}
+.logo-name{font-size:18px;font-weight:800;color:#0f172a;}
+.logo-name span{color:#065f46;}
+.back-link{color:#065f46;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.hero{background:linear-gradient(135deg,#065f46 0%,#047857 50%,#065f46 100%);padding:54px 24px 46px;text-align:center;}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.9);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;margin-bottom:14px;}
+.hero h1{color:white;font-size:32px;font-weight:800;margin-bottom:10px;letter-spacing:-1px;line-height:1.3;}
+.hero h1 span{color:#fbbf24;}
+.hero p{color:rgba(255,255,255,0.78);font-size:14px;max-width:600px;margin:0 auto;line-height:1.6;}
+.wrap{max-width:960px;margin:0 auto;padding:44px 24px 70px;}
+.post-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.post-card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);border:1px solid #f1f5f9;display:flex;flex-direction:column;text-decoration:none;color:inherit;}
+.post-thumb{height:100px;background:linear-gradient(135deg,#065f46,#059669);display:flex;align-items:center;justify-content:center;}
+.post-thumb i{font-size:34px;color:rgba(255,255,255,0.85);}
+.post-body-inner{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column;}
+.post-tag{display:inline-block;background:#f0fdf4;color:#065f46;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:4px 10px;border-radius:20px;margin-bottom:11px;width:fit-content;}
+.post-title{font-size:17px;font-weight:700;color:#0f172a;margin-bottom:9px;line-height:1.35;}
+.post-excerpt{font-size:13.5px;color:#64748b;line-height:1.65;margin-bottom:14px;flex:1;}
+.post-meta{font-size:11.5px;color:#94a3b8;display:flex;align-items:center;gap:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:#94a3b8;}
+.article-wrap{max-width:720px;margin:0 auto;padding:44px 24px 70px;}
+.article-card{background:white;border-radius:20px;padding:36px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);border:1px solid #f1f5f9;}
+.article-tag{display:inline-block;background:#f0fdf4;color:#065f46;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:5px 12px;border-radius:20px;margin-bottom:16px;}
+.article-card h1{font-size:26px;font-weight:800;color:#0f172a;margin-bottom:12px;line-height:1.3;letter-spacing:-0.5px;}
+.article-meta{font-size:12.5px;color:#94a3b8;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #f1f5f9;}
+.article-body{font-size:15px;line-height:1.8;color:#374151;}
+.article-body h3{font-size:18px;font-weight:700;color:#065f46;margin:26px 0 10px;}
+.article-body p{margin-bottom:14px;}
+.article-body ul{margin:0 0 14px 20px;}
+.article-body li{margin-bottom:8px;}
+.cta-box{background:linear-gradient(135deg,#065f46,#047857);border-radius:16px;padding:24px 26px;margin-top:32px;color:white;text-align:center;}
+.cta-box a{display:inline-block;margin-top:12px;background:white;color:#065f46;font-weight:700;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:13.5px;}
+.site-footer{background:#0f172a;padding:36px 24px;text-align:center;margin-top:16px;}
+.site-footer p{color:rgba(255,255,255,0.4);font-size:12.5px;}
+@media(max-width:700px){ .post-grid{grid-template-columns:1fr;} .navbar{padding:0 16px;} .hero h1{font-size:24px;} .article-card{padding:24px 20px;} }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/app.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#g3)"/><path d="M28 68 L28 50 L40 50 L40 68 M46 68 L46 38 L58 38 L58 68 M64 68 L64 28 L76 28 L76 68" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="76" cy="24" r="7" fill="#f97316"/><defs><linearGradient id="g3" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg></div>
+    <span class="logo-name">AEO <span>Tracker</span></span>
+  </a>
+  <a href="/app.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to App</a>
+</nav>
+${bodyHtml}
+<footer class="site-footer"><p>&copy; 2026 AEO Tracker. All rights reserved.</p></footer>
+</body>
+</html>`;
+}
+
+function escapeHtmlServer(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Public: list published posts (used by the listing page + could be used by any client)
+app.get('/api/blog/posts', async (req, res) => {
+    const { data, error } = await supabaseAdmin.from('blog_posts').select('id,slug,title,excerpt,category,read_time,created_at').eq('published', true).order('created_at', { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ posts: data });
+});
+
+// Public: single published post by slug
+app.get('/api/blog/posts/:slug', async (req, res) => {
+    const { data, error } = await supabaseAdmin.from('blog_posts').select('*').eq('slug', req.params.slug).eq('published', true).maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: 'Post not found' });
+    res.json({ post: data });
+});
+
+// Admin: list ALL posts (including drafts)
+app.get('/api/admin/blog/posts', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const access = await getOrCreateAccess(user.id, user.email);
+    if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+    const { data, error } = await supabaseAdmin.from('blog_posts').select('*').order('created_at', { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ posts: data });
+});
+
+// Admin: create post
+app.post('/api/admin/blog/posts', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const access = await getOrCreateAccess(user.id, user.email);
+    if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+    const { title, excerpt, content, category, read_time, published } = req.body;
+    if (!isSafeText(title, 200)) return textError(res, 'title');
+    if (!content || content.trim().length === 0) return textError(res, 'content');
+    let slug = slugify(title);
+    const { data: existing } = await supabaseAdmin.from('blog_posts').select('id').eq('slug', slug).maybeSingle();
+    if (existing) slug = slug + '-' + Date.now().toString().slice(-5);
+    const { data, error } = await supabaseAdmin.from('blog_posts').insert({
+        slug, title, excerpt: excerpt || '', content, category: category || 'AEO Basics',
+        read_time: read_time || '5 min read', published: !!published, author_id: user.id
+    }).select().maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ post: data });
+});
+
+// Admin: update post
+app.put('/api/admin/blog/posts/:id', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const access = await getOrCreateAccess(user.id, user.email);
+    if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+    const { title, excerpt, content, category, read_time, published } = req.body;
+    const updates = { updated_at: new Date().toISOString() };
+    if (title !== undefined) updates.title = title;
+    if (excerpt !== undefined) updates.excerpt = excerpt;
+    if (content !== undefined) updates.content = content;
+    if (category !== undefined) updates.category = category;
+    if (read_time !== undefined) updates.read_time = read_time;
+    if (published !== undefined) updates.published = !!published;
+    const { data, error } = await supabaseAdmin.from('blog_posts').update(updates).eq('id', req.params.id).select().maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ post: data });
+});
+
+// Admin: delete post
+app.delete('/api/admin/blog/posts/:id', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const access = await getOrCreateAccess(user.id, user.email);
+    if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+    const { error } = await supabaseAdmin.from('blog_posts').delete().eq('id', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+});
+
+// Public, server-rendered: blog listing page (no login required — this is what Google indexes)
+app.get('/blog', async (req, res) => {
+    const { data: posts } = await supabaseAdmin.from('blog_posts').select('slug,title,excerpt,category,read_time,created_at').eq('published', true).order('created_at', { ascending: false });
+    const list = posts || [];
+    const cardsHtml = list.length ? list.map(p => `
+      <a class="post-card" href="/blog/${encodeURIComponent(p.slug)}">
+        <div class="post-thumb"><i class="fa-solid fa-robot"></i></div>
+        <div class="post-body-inner">
+          <span class="post-tag">${escapeHtmlServer(p.category)}</span>
+          <div class="post-title">${escapeHtmlServer(p.title)}</div>
+          <div class="post-excerpt">${escapeHtmlServer(p.excerpt)}</div>
+          <div class="post-meta"><i class="fa-regular fa-clock"></i> ${escapeHtmlServer(p.read_time)}</div>
+        </div>
+      </a>`).join('') : '<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:12px;"></i>No posts published yet. Check back soon.</div>';
+
+    const body = `
+      <div class="hero">
+        <div class="hero-pill"><i class="fa-solid fa-book-open"></i> AEO Tracker Blog</div>
+        <h1>AEO <span>Insights</span> &amp; Guides</h1>
+        <p>Practical guides on Answer Engine Optimization, AI search visibility, and getting your brand recommended by ChatGPT, Gemini, and Perplexity.</p>
+      </div>
+      <div class="wrap"><div class="post-grid">${cardsHtml}</div></div>`;
+
+    res.send(blogPageShell({
+        title: 'Blog - AEO Tracker | AI Search Optimization Insights',
+        description: 'Learn about Answer Engine Optimization (AEO), AI search visibility, and how to get your brand mentioned by ChatGPT, Gemini, and Perplexity.',
+        bodyHtml: body,
+        canonicalPath: '/blog'
+    }));
+});
+
+// Public, server-rendered: single blog post page (this is the actual SEO-facing page per article)
+app.get('/blog/:slug', async (req, res) => {
+    const { data: post } = await supabaseAdmin.from('blog_posts').select('*').eq('slug', req.params.slug).eq('published', true).maybeSingle();
+    if (!post) {
+        return res.status(404).send(blogPageShell({
+            title: 'Post Not Found - AEO Tracker Blog',
+            description: 'This blog post could not be found.',
+            bodyHtml: '<div class="wrap"><div class="empty-state"><i class="fa-solid fa-face-frown" style="font-size:32px;display:block;margin-bottom:12px;"></i>This post doesn\'t exist or hasn\'t been published yet. <br><a href="/blog" style="color:#065f46;font-weight:700;">Back to Blog</a></div></div>',
+            canonicalPath: '/blog/' + req.params.slug
+        }));
+    }
+    const dateStr = new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const body = `
+      <div class="article-wrap">
+        <div class="article-card">
+          <span class="article-tag">${escapeHtmlServer(post.category)}</span>
+          <h1>${escapeHtmlServer(post.title)}</h1>
+          <div class="article-meta"><i class="fa-regular fa-clock"></i> ${escapeHtmlServer(post.read_time)} &nbsp;&middot;&nbsp; Published ${dateStr}</div>
+          <div class="article-body">${post.content}</div>
+          <div class="cta-box">
+            <div style="font-weight:700;font-size:15px;">Want to see where your brand stands in AI search?</div>
+            <a href="/app.html">Run a Free AI Visibility Check →</a>
+          </div>
+        </div>
+      </div>`;
+    res.send(blogPageShell({
+        title: post.title + ' - AEO Tracker Blog',
+        description: post.excerpt || post.title,
+        bodyHtml: body,
+        canonicalPath: '/blog/' + post.slug
+    }));
+});
+
+// Dynamic sitemap — automatically includes every published blog post
+app.get('/sitemap.xml', async (req, res) => {
+    const base = 'https://ai-visibility-tool-omega.vercel.app';
+    const staticUrls = [
+        { loc: '/', priority: '1.0' },
+        { loc: '/pricing.html', priority: '0.9' },
+        { loc: '/app.html', priority: '0.8' },
+        { loc: '/blog', priority: '0.8' },
+        { loc: '/privacy.html', priority: '0.3' },
+        { loc: '/terms.html', priority: '0.3' }
+    ];
+    const { data: posts } = await supabaseAdmin.from('blog_posts').select('slug,updated_at').eq('published', true);
+    const postUrls = (posts || []).map(p => ({ loc: '/blog/' + p.slug, priority: '0.7', lastmod: p.updated_at }));
+    const all = [...staticUrls, ...postUrls];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+        all.map(u => `  <url>\n    <loc>${base}${u.loc}</loc>\n${u.lastmod ? `    <lastmod>${new Date(u.lastmod).toISOString()}</lastmod>\n` : ''}    <priority>${u.priority}</priority>\n  </url>`).join('\n') +
+        `\n</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+});
+
+// ===================== END BLOG SYSTEM =====================
+
 // Check current user's access/plan/usage
 app.get('/api/check-access', async (req, res) => {
   const user = await getUserFromToken(req);

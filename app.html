@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -163,6 +164,10 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
 .competitor-rank{font-weight:800;color:#065f46;width:38px;flex-shrink:0;font-size:12px;}
 .competitor-name{flex:1;color:#374151;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .competitor-app{font-size:10.5px;color:#94a3b8;flex-shrink:0;white-space:nowrap;}
+.btn-pdf{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:#f0fdf4;color:#065f46;border:1.5px solid #bbf7d0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.btn-pdf:hover{background:#dcfce7;}
+.btn-pdf:disabled{opacity:0.6;cursor:not-allowed;}
+.pdf-bar{display:flex;justify-content:flex-end;margin-bottom:12px;}
 .loading{text-align:center;padding:60px 20px;}
 .spin{width:44px;height:44px;border:3px solid #e2e8f0;border-top:3px solid #065f46;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -260,6 +265,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
       <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu()" title="Account"><i class="fa-solid fa-user"></i></button>
       <div class="user-dropdown" id="userDropdown">
         <a id="adminMenuItem" style="display:none;" onclick="window.location.href='/admin.html'"><i class="fa-solid fa-user-shield"></i> Admin Panel</a>
+        <a id="blogEditorMenuItem" style="display:none;" onclick="window.location.href='/admin-blog.html'"><i class="fa-solid fa-pen-nib"></i> Blog Editor</a>
         <a onclick="openHistory()"><i class="fa-solid fa-clock-rotate-left"></i> Search History</a>
         <a class="danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Log out</a>
       </div>
@@ -363,7 +369,8 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:
         <div class="input-row-3 mb16">
           <div class="field"><label><i class="fa-solid fa-globe"></i> Domain</label><input type="text" id="l-domain" placeholder="yoursite.com"/></div>
           <div class="field"><label><i class="fa-solid fa-key"></i> Service Keyword</label><input type="text" id="l-keyword" placeholder="window repair"/></div>
-          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="california"/></div>
+          <div class="field"><label><i class="fa-solid fa-location-dot"></i> City</label><input type="text" id="l-city" placeholder="California
+"/></div>
         </div>
         <button class="btn-run" id="btn-local" onclick="runLocal()"><i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence</button>
       </div>
@@ -504,6 +511,7 @@ async function refreshUsageBadge(){
     }
     if(info.is_admin){
       document.getElementById('adminMenuItem').style.display = 'flex';
+      document.getElementById('blogEditorMenuItem').style.display = 'flex';
       document.getElementById('userMenuBtn').classList.add('is-admin');
     }
   }catch(e){ console.log('Could not load access info', e); }
@@ -627,6 +635,35 @@ function donut(id,labels,vals,colors){
   charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,cutout:"65%",plugins:{legend:{position:"bottom",labels:{font:{family:"Inter",size:11},padding:12,usePointStyle:true}}}}});
 }
 
+function insertDownloadButton(resultId,filename){
+  var container=document.getElementById(resultId);
+  if(!container)return;
+  var bar=document.createElement('div');
+  bar.className='pdf-bar';
+  bar.innerHTML='<button class="btn-pdf" id="pdfBtn-'+resultId+'" onclick="downloadPDF(\''+resultId+'\',\''+filename+'\')"><i class="fa-solid fa-file-pdf"></i> Download PDF Report</button>';
+  container.insertBefore(bar,container.firstChild);
+}
+
+function downloadPDF(resultId,filename){
+  var el=document.getElementById(resultId);
+  var btn=document.getElementById('pdfBtn-'+resultId);
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Preparing PDF...';}
+  var opt={
+    margin:8,
+    filename:filename+'.pdf',
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#f8fafc'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['avoid-all','css','legacy']}
+  };
+  html2pdf().set(opt).from(el).save().then(function(){
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF Report';}
+  }).catch(function(){
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF Report';}
+    alert('Could not generate PDF. Please try again.');
+  });
+}
+
 async function runVisibility(){
   var kw=document.getElementById("v-keyword").value.trim();
   var dom=document.getElementById("v-domain").value.trim();
@@ -679,6 +716,7 @@ async function runVisibility(){
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (fixes?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fixes+'</div>':'')+
       '</div>';
+    insertDownloadButton('result-visibility','AEO-Visibility-'+dom.replace(/[^a-z0-9.-]/gi,'_'));
     saveToHistory('AI Visibility', kw, dom, null, mentioned ? 'Mentioned' : 'Not Mentioned', t);
   }catch(e){document.getElementById("result-visibility").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-rocket"></i> Generate AI Visibility Report';
@@ -737,6 +775,7 @@ async function runSentiment(){
       (issues?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-triangle-exclamation"></i> Key Issues Found</div>'+issues+'</div>':'')+
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Improvement Tips</div>'+tHtml+'</div>':'')+
       '</div>';
+    insertDownloadButton('result-sentiment','AEO-Sentiment-'+dom.replace(/[^a-z0-9.-]/gi,'_'));
     setTimeout(function(){donut("sChart",["Trust","Concern","Neutral"],[trust,concern,neutral2],["#065f46","#ef4444","#fbbf24"]);},100);
     saveToHistory('Brand Sentiment', null, dom, null, sent + ' (' + sc + '%)', t);
   }catch(e){document.getElementById("result-sentiment").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
@@ -786,6 +825,7 @@ async function runWhyNotRanking(){
       (fHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-wrench"></i> How To Improve Visibility</div>'+fHtml+'</div>':'')+
       (prM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-star"></i> Priority Action</div><div class="priority"><div class="p-label">Do This First</div><div class="p-text">'+escapeHtml(prM[1].trim())+'</div></div></div>':'')+
       '</div>';
+    insertDownloadButton('result-whynotranking','AEO-WhyNotRanking-'+dom.replace(/[^a-z0-9.-]/gi,'_'));
     saveToHistory('Why Not Ranking', kw, dom, null, status, t);
   }catch(e){document.getElementById("result-whynotranking").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass-chart"></i> Run Gap Analysis';
@@ -841,6 +881,7 @@ async function runLocal(){
       (tHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-lightbulb"></i> Local SEO Tips</div>'+tHtml+'</div>':'')+
       (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Local Insight</div><div class="insight">'+escapeHtml(inM[1].trim())+'</div></div>':'')+
       '</div>';
+    insertDownloadButton('result-local','AEO-LocalAI-'+dom.replace(/[^a-z0-9.-]/gi,'_'));
     saveToHistory('Local AI', kw, dom, city, status + ' (' + sc + '%)', t);
   }catch(e){document.getElementById("result-local").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i> Check Local AI Presence';
@@ -897,6 +938,7 @@ async function runCitation(){
       (imHtml?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-arrow-trend-up"></i> How to Improve</div>'+imHtml+'</div>':'')+
       (inM?'<div class="sec"><div class="sec-label"><i class="fa-solid fa-circle-info"></i> Citation Insight</div><div class="insight">'+escapeHtml(inM[1].trim())+'</div></div>':'')+
       '</div>';
+    insertDownloadButton('result-citation','AEO-Citation-'+dom.replace(/[^a-z0-9.-]/gi,'_'));
     saveToHistory('Citation Score', kw, dom, null, sc + '% - ' + strength, t);
   }catch(e){document.getElementById("result-citation").innerHTML='<div class="report"><p style="color:#dc2626">Error: '+e.message+'</p></div>';}
   btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-link"></i> Audit Citation Score';
@@ -984,7 +1026,7 @@ async function runGeoGrid(){
     if(pText)pText.textContent="Scanning "+simPoints+"/121 points... ("+pct+"%)";
     if(pBar)pBar.style.width=pct+"%";
     btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Scanning '+simPoints+'/121...';
-  },900);
+  },250);
 
   try{
     var token=await getAccessToken();
@@ -1032,6 +1074,7 @@ async function runGeoGrid(){
       '</div>'+
       '<div class="sec"><div class="sec-label"><i class="fa-solid fa-trophy"></i> Top Competitors Across the Grid</div><div class="competitor-list">'+compHtml+'</div></div>'+
       '</div>';
+    insertDownloadButton('result-geogrid','AEO-GeoGrid-'+biz.replace(/[^a-z0-9.-]/gi,'_'));
 
     setTimeout(function(){
       if(geoMapInstance){geoMapInstance.remove();geoMapInstance=null;}
