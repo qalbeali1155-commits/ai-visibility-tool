@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const dns = require('dns').promises;
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
@@ -168,6 +169,26 @@ function textError(res, field) {
     return res.status(400).json({ error: `Please enter a valid ${field}.` });
 }
 
+// Checks the domain actually resolves (has DNS records) — this is what tells us
+// a domain is real, since Google search almost never returns truly zero results
+// even for made-up domains, so we can't rely on search results alone.
+async function domainExists(domain) {
+    const cleaned = domain.trim().toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0]
+        .split('?')[0];
+    try {
+        await dns.lookup(cleaned);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+function domainNotFoundError(res, domain) {
+    return res.status(404).json({ error: `"${domain}" doesn't appear to be a real, registered domain. Please double-check the spelling.` });
+}
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -185,6 +206,7 @@ app.post('/api/visibility', async (req, res) => {
     const { keyword, domain, competitors } = req.body;
     if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
     if (!isValidDomain(domain)) return domainError(res);
+    if (!(await domainExists(domain))) return domainNotFoundError(res, domain);
     if (competitors && !isSafeText(competitors, 300)) return textError(res, 'competitors list');
     try {
         const searchData = await callSerper(keyword);
@@ -235,6 +257,7 @@ app.post('/api/sentiment', async (req, res) => {
     if (!user) return;
     const { domain } = req.body;
     if (!isValidDomain(domain)) return domainError(res);
+    if (!(await domainExists(domain))) return domainNotFoundError(res, domain);
     try {
         const searchData = await callSerper(`${domain} reviews feedback`);
         const snippets = searchData.organic?.map(r => r.snippet).filter(Boolean).join('\n') || 'No data';
@@ -270,6 +293,7 @@ app.post('/api/whynotranking', async (req, res) => {
     const { keyword, domain } = req.body;
     if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
     if (!isValidDomain(domain)) return domainError(res);
+    if (!(await domainExists(domain))) return domainNotFoundError(res, domain);
     try {
         const searchData = await callSerper(keyword);
         const top = searchData.organic?.slice(0, 5).map(r => `${r.link} - ${r.snippet}`).join('\n') || 'No data';
@@ -307,6 +331,7 @@ app.post('/api/local', async (req, res) => {
     const { keyword, domain, city } = req.body;
     if (!isSafeText(keyword, 150)) return textError(res, 'keyword');
     if (!isValidDomain(domain)) return domainError(res);
+    if (!(await domainExists(domain))) return domainNotFoundError(res, domain);
     if (!isSafeText(city, 100)) return textError(res, 'city');
     try {
         const searchData = await callSerper(`${keyword} in ${city}`, 'places');
@@ -347,6 +372,7 @@ app.post('/api/citation', async (req, res) => {
     if (!user) return;
     const { domain, keyword } = req.body;
     if (!isValidDomain(domain)) return domainError(res);
+    if (!(await domainExists(domain))) return domainNotFoundError(res, domain);
     if (!isSafeText(keyword, 150)) return textError(res, 'keyword/topic');
     try {
         const searchData = await callSerper(`"${domain}" ${keyword} mentioned cited`);
