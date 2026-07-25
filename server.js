@@ -625,6 +625,7 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
 .article-body p{margin-bottom:14px;}
 .article-body ul{margin:0 0 14px 20px;}
 .article-body li{margin-bottom:8px;}
+.article-body img{max-width:100%;height:auto;border-radius:10px;margin:14px 0;display:block;}
 .cta-box{background:linear-gradient(135deg,#065f46,#047857);border-radius:16px;padding:24px 26px;margin-top:32px;color:white;text-align:center;}
 .cta-box a{display:inline-block;margin-top:12px;background:white;color:#065f46;font-weight:700;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:13.5px;}
 .site-footer{background:#0f172a;padding:36px 24px;text-align:center;margin-top:16px;}
@@ -653,7 +654,7 @@ function escapeHtmlServer(str) {
 
 // Public: list published posts (used by the listing page + could be used by any client)
 app.get('/api/blog/posts', async (req, res) => {
-    const { data, error } = await supabaseAdmin.from('blog_posts').select('id,slug,title,excerpt,category,read_time,created_at').eq('published', true).order('created_at', { ascending: false });
+    const { data, error } = await supabaseAdmin.from('blog_posts').select('id,slug,title,excerpt,category,read_time,created_at,featured_image').eq('published', true).order('created_at', { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     res.json({ posts: data });
 });
@@ -677,13 +678,37 @@ app.get('/api/admin/blog/posts', async (req, res) => {
     res.json({ posts: data });
 });
 
+// Admin: upload an image (base64) to Supabase Storage, used for blog featured images + inline content images
+app.post('/api/admin/blog/upload-image', async (req, res) => {
+    const user = await getUserFromToken(req);
+    if (!user) return res.status(401).json({ error: 'Not logged in' });
+    const access = await getOrCreateAccess(user.id, user.email);
+    if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+    const { imageBase64, fileName, contentType } = req.body;
+    if (!imageBase64 || !fileName) return res.status(400).json({ error: 'Missing image data' });
+    try {
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        if (buffer.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'Image too large (max 5MB)' });
+        const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const path = `${Date.now()}-${safeName}`;
+        const { error: uploadError } = await supabaseAdmin.storage.from('blog-images').upload(path, buffer, {
+            contentType: contentType || 'image/jpeg',
+            upsert: false
+        });
+        if (uploadError) return res.status(500).json({ error: uploadError.message });
+        const { data } = supabaseAdmin.storage.from('blog-images').getPublicUrl(path);
+        res.json({ url: data.publicUrl });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
 // Admin: create post
 app.post('/api/admin/blog/posts', async (req, res) => {
     const user = await getUserFromToken(req);
     if (!user) return res.status(401).json({ error: 'Not logged in' });
     const access = await getOrCreateAccess(user.id, user.email);
     if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
-    const { title, excerpt, content, category, read_time, published } = req.body;
+    const { title, excerpt, content, category, read_time, published, featured_image } = req.body;
     if (!isSafeText(title, 200)) return textError(res, 'title');
     if (!content || content.trim().length === 0) return textError(res, 'content');
     let slug = slugify(title);
@@ -691,7 +716,8 @@ app.post('/api/admin/blog/posts', async (req, res) => {
     if (existing) slug = slug + '-' + Date.now().toString().slice(-5);
     const { data, error } = await supabaseAdmin.from('blog_posts').insert({
         slug, title, excerpt: excerpt || '', content, category: category || 'AEO Basics',
-        read_time: read_time || '5 min read', published: !!published, author_id: user.id
+        read_time: read_time || '5 min read', published: !!published, author_id: user.id,
+        featured_image: featured_image || null
     }).select().maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
     res.json({ post: data });
@@ -703,7 +729,7 @@ app.put('/api/admin/blog/posts/:id', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Not logged in' });
     const access = await getOrCreateAccess(user.id, user.email);
     if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
-    const { title, excerpt, content, category, read_time, published } = req.body;
+    const { title, excerpt, content, category, read_time, published, featured_image } = req.body;
     const updates = { updated_at: new Date().toISOString() };
     if (title !== undefined) updates.title = title;
     if (excerpt !== undefined) updates.excerpt = excerpt;
@@ -711,6 +737,7 @@ app.put('/api/admin/blog/posts/:id', async (req, res) => {
     if (category !== undefined) updates.category = category;
     if (read_time !== undefined) updates.read_time = read_time;
     if (published !== undefined) updates.published = !!published;
+    if (featured_image !== undefined) updates.featured_image = featured_image;
     const { data, error } = await supabaseAdmin.from('blog_posts').update(updates).eq('id', req.params.id).select().maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
     res.json({ post: data });
@@ -729,11 +756,11 @@ app.delete('/api/admin/blog/posts/:id', async (req, res) => {
 
 // Public, server-rendered: blog listing page (no login required — this is what Google indexes)
 app.get('/blog', async (req, res) => {
-    const { data: posts } = await supabaseAdmin.from('blog_posts').select('slug,title,excerpt,category,read_time,created_at').eq('published', true).order('created_at', { ascending: false });
+    const { data: posts } = await supabaseAdmin.from('blog_posts').select('slug,title,excerpt,category,read_time,created_at,featured_image').eq('published', true).order('created_at', { ascending: false });
     const list = posts || [];
     const cardsHtml = list.length ? list.map(p => `
       <a class="post-card" href="/blog/${encodeURIComponent(p.slug)}">
-        <div class="post-thumb"><i class="fa-solid fa-robot"></i></div>
+        <div class="post-thumb"${p.featured_image ? ` style="background-image:url('${escapeHtmlServer(p.featured_image)}');background-size:cover;background-position:center;"` : ''}>${p.featured_image ? '' : '<i class="fa-solid fa-robot"></i>'}</div>
         <div class="post-body-inner">
           <span class="post-tag">${escapeHtmlServer(p.category)}</span>
           <div class="post-title">${escapeHtmlServer(p.title)}</div>
@@ -770,12 +797,14 @@ app.get('/blog/:slug', async (req, res) => {
         }));
     }
     const dateStr = new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const heroImg = post.featured_image ? `<img src="${escapeHtmlServer(post.featured_image)}" alt="${escapeHtmlServer(post.title)}" style="width:100%;border-radius:14px;margin-bottom:24px;display:block;">` : '';
     const body = `
       <div class="article-wrap">
         <div class="article-card">
           <span class="article-tag">${escapeHtmlServer(post.category)}</span>
           <h1>${escapeHtmlServer(post.title)}</h1>
           <div class="article-meta"><i class="fa-regular fa-clock"></i> ${escapeHtmlServer(post.read_time)} &nbsp;&middot;&nbsp; Published ${dateStr}</div>
+          ${heroImg}
           <div class="article-body">${post.content}</div>
           <div class="cta-box">
             <div style="font-weight:700;font-size:15px;">Want to see where your brand stands in AI search?</div>

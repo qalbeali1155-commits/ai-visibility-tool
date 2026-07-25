@@ -89,6 +89,15 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
       <div class="slug-preview">URL: /blog/<span id="slugPreview">your-post-title</span></div>
     </div>
     <div class="field">
+      <label>Featured Image (shown on the blog card and at the top of the article)</label>
+      <input type="file" id="featuredImageFile" accept="image/*" onchange="uploadFeaturedImage(this)">
+      <input type="hidden" id="featuredImageUrl">
+      <div id="featuredImagePreviewWrap" style="margin-top:10px;display:none;">
+        <img id="featuredImagePreview" style="max-width:200px;border-radius:10px;display:block;">
+        <button type="button" class="btn btn-outline" style="margin-top:8px;padding:6px 14px;font-size:12px;" onclick="clearFeaturedImage()">Remove Image</button>
+      </div>
+    </div>
+    <div class="field">
       <label>Category</label>
       <select id="postCategory">
         <option>AEO Basics</option>
@@ -110,8 +119,10 @@ body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;}
         <button type="button" onclick="fmt('insertUnorderedList')" title="Bullet list"><i class="fa-solid fa-list-ul"></i></button>
         <button type="button" onclick="fmtLink()" title="Link"><i class="fa-solid fa-link"></i></button>
         <button type="button" onclick="fmt('formatBlock',false,'p')" title="Paragraph">P</button>
+        <button type="button" onclick="insertContentImage()" title="Insert Image"><i class="fa-solid fa-image"></i></button>
       </div>
       <div class="editor-content" id="postContent" contenteditable="true"></div>
+      <input type="file" id="contentImageFile" accept="image/*" style="display:none;" onchange="handleContentImageUpload(this)">
     </div>
     <div class="field">
       <label>Read Time</label>
@@ -187,6 +198,7 @@ function openEditor(){
   document.getElementById('postContent').innerHTML = '';
   document.getElementById('postReadTime').value = '5 min read';
   document.getElementById('postPublished').checked = false;
+  clearFeaturedImage();
   updateSlugPreview();
   document.getElementById('editorModal').classList.add('open');
 }
@@ -203,6 +215,12 @@ function editPost(idx){
   document.getElementById('postReadTime').value = p.read_time || '5 min read';
   document.getElementById('postPublished').checked = !!p.published;
   document.getElementById('slugPreview').textContent = p.slug;
+  clearFeaturedImage();
+  if (p.featured_image) {
+    document.getElementById('featuredImageUrl').value = p.featured_image;
+    document.getElementById('featuredImagePreview').src = p.featured_image;
+    document.getElementById('featuredImagePreviewWrap').style.display = 'block';
+  }
   document.getElementById('editorModal').classList.add('open');
 }
 
@@ -211,6 +229,55 @@ async function deletePost(id){
   var token = await getToken();
   await fetch('/api/admin/blog/posts/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
   loadPosts();
+}
+
+function fileToBase64(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(){ resolve(reader.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadImageFile(file){
+  if (file.size > 5 * 1024 * 1024) { alert('Image too large. Max 5MB.'); return null; }
+  var base64 = await fileToBase64(file);
+  var token = await getToken();
+  var r = await fetch('/api/admin/blog/upload-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ imageBase64: base64, fileName: file.name, contentType: file.type })
+  });
+  var d = await r.json();
+  if (!r.ok) { alert(d.error || 'Upload failed'); return null; }
+  return d.url;
+}
+
+async function uploadFeaturedImage(input){
+  if (!input.files || !input.files[0]) return;
+  var url = await uploadImageFile(input.files[0]);
+  if (!url) return;
+  document.getElementById('featuredImageUrl').value = url;
+  document.getElementById('featuredImagePreview').src = url;
+  document.getElementById('featuredImagePreviewWrap').style.display = 'block';
+}
+function clearFeaturedImage(){
+  document.getElementById('featuredImageUrl').value = '';
+  document.getElementById('featuredImageFile').value = '';
+  document.getElementById('featuredImagePreviewWrap').style.display = 'none';
+}
+
+function insertContentImage(){
+  document.getElementById('contentImageFile').click();
+}
+async function handleContentImageUpload(input){
+  if (!input.files || !input.files[0]) return;
+  var url = await uploadImageFile(input.files[0]);
+  input.value = '';
+  if (!url) return;
+  document.getElementById('postContent').focus();
+  document.execCommand('insertHTML', false, '<img src="' + url + '" style="max-width:100%;border-radius:8px;margin:10px 0;">');
 }
 
 function fmt(cmd, ui, val){ document.getElementById('postContent').focus(); document.execCommand(cmd, ui || false, val || null); }
@@ -233,7 +300,8 @@ async function savePost(){
     content: content,
     category: document.getElementById('postCategory').value,
     read_time: document.getElementById('postReadTime').value.trim() || '5 min read',
-    published: document.getElementById('postPublished').checked
+    published: document.getElementById('postPublished').checked,
+    featured_image: document.getElementById('featuredImageUrl').value || null
   };
 
   var btn = document.getElementById('saveBtn');
