@@ -254,41 +254,47 @@ app.post('/api/visibility', async (req, res) => {
     if (competitors && !isSafeText(competitors, 300)) return textError(res, 'competitors list');
     try {
         const searchData = await callSerper(keyword);
-        const results = searchData.organic?.slice(0, 10).map((r, i) => `Rank ${i+1}: ${r.link} - ${r.title}`).join('\n') || 'No results';
+        const results = searchData.organic?.slice(0, 10).map((r, i) => `Rank ${i+1}: ${r.link} - "${r.title}" — ${r.snippet || 'no snippet'}`).join('\n') || 'No results';
         if (results === 'No results') {
             return res.status(404).json({ error: `We couldn't find any Google results for "${keyword}". Try a different or less specific keyword.` });
         }
         const competitorScores = competitors ? competitors.split(',').map(c => `${c.trim()}: [0-100]%`).join('\n') : '';
         const prompt = `You are an AEO (Answer Engine Optimization) expert consultant. Analyze AI Search visibility for "${domain}" for keyword "${keyword}".
-Real Google Results:\n${results}\nCompetitors: ${competitors || 'none'}
+Real Google Results (each with the actual snippet Google shows):\n${results}\nCompetitors: ${competitors || 'none'}
+
+CRITICAL RULES — read carefully:
+- This analysis must be unique to THIS domain and THESE specific search results. Do not write generic SEO advice that could apply to any website.
+- Every issue and fix must reference something concrete from the results above: a specific competitor name/URL, a specific phrase from a snippet, or a specific gap you can see by comparing "${domain}" to what's actually ranking.
+- Do NOT use generic filler like "improve content quality", "build more backlinks", "optimize for keywords" unless you tie it directly to a specific competitor or snippet as evidence.
+- If two different domains were analyzed for the same keyword, their KEY ISSUES and HOW TO IMPROVE sections should read differently, because each domain's actual gap vs the real competitors is different.
 
 Respond in this EXACT format:
 VISIBILITY STATUS:
 [Mentioned/Not Mentioned] - [specific rank or reason]
 
 TOP 5 RECOMMENDATIONS:
-1. [website] - [why ranking]
-2. [website] - [why ranking]
-3. [website] - [why ranking]
-4. [website] - [why ranking]
-5. [website] - [why ranking]
+1. [website] - [why ranking, referencing their actual snippet/content]
+2. [website] - [why ranking, referencing their actual snippet/content]
+3. [website] - [why ranking, referencing their actual snippet/content]
+4. [website] - [why ranking, referencing their actual snippet/content]
+5. [website] - [why ranking, referencing their actual snippet/content]
 
 VISIBILITY SCORE:
 ${domain}: [0-100]%
 ${competitorScores}
 
 COMPETITOR INSIGHT:
-[2 lines comparing domain with competitors based on real data]
+[2 lines naming specific competitors from the results and what they concretely do that "${domain}" doesn't, based on their actual snippets]
 
 KEY ISSUES:
-1. [specific reason this domain is weak or missing in AI/Google visibility for this keyword]
-2. [specific reason]
-3. [specific reason]
+1. [specific reason tied to a named competitor or snippet detail — not generic]
+2. [specific reason tied to a named competitor or snippet detail — not generic]
+3. [specific reason tied to a named competitor or snippet detail — not generic]
 
 HOW TO IMPROVE VISIBILITY:
-1. [specific, actionable SEO/AEO fix tied to the issues above]
-2. [specific, actionable SEO/AEO fix]
-3. [specific, actionable SEO/AEO fix]`;
+1. [specific, actionable fix tied to issue #1 above]
+2. [specific, actionable fix tied to issue #2 above]
+3. [specific, actionable fix tied to issue #3 above]`;
         const ai_response = await callGroq(prompt);
         const mentioned = results.toLowerCase().includes(domain.toLowerCase().replace('https://','').replace('http://','').replace('www.',''));
         res.json({ keyword, domain, mentioned, ai_response });
