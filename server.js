@@ -189,6 +189,32 @@ function domainNotFoundError(res, domain) {
     return res.status(404).json({ error: `"${domain}" doesn't appear to be a real, registered domain. Please double-check the spelling.` });
 }
 
+// Normalizes a business name for comparison: strips apostrophes/punctuation and
+// common legal suffixes (LLC, Inc, Corp...) so minor formatting differences
+// between what the user selected and what Google actually returns don't cause
+// a real ranking to be missed.
+function normalizeBizName(str) {
+    return (str || '').toLowerCase()
+        .replace(/['’.,\-]/g, '')
+        .replace(/\b(llc|inc|incorporated|corp|corporation|co|ltd|limited|company)\b/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+// Returns true if two business names likely refer to the same business —
+// exact substring match first, falling back to a word-overlap check so
+// "Ryans Landscape Construction" still matches "Ryan's Landscape Construction LLC".
+function namesMatch(businessName, title) {
+    const a = normalizeBizName(businessName);
+    const b = normalizeBizName(title);
+    if (!a || !b) return false;
+    if (b.includes(a) || a.includes(b)) return true;
+    const aWords = a.split(' ').filter(w => w.length > 2);
+    if (aWords.length === 0) return false;
+    const matchCount = aWords.filter(w => b.includes(w)).length;
+    return (matchCount / aWords.length) >= 0.7;
+}
+
 // Verifies the domain is actually mentioned somewhere in the search results —
 // Google almost always returns *some* organic results for any query, even
 // unrelated ones, so just checking "results exist" isn't enough to stop the
@@ -510,11 +536,10 @@ app.post('/api/geo-grid', async (req, res) => {
                     const places = data.places || [];
                     let rank = null;
                     places.forEach((pl, idx) => {
-                        const title = (pl.title || '').toLowerCase();
-                        if (rank === null && title.includes(nameLower)) rank = idx + 1;
+                        if (rank === null && namesMatch(businessName, pl.title || '')) rank = idx + 1;
                     });
                     const competitors = places
-                        .filter(pl => !(pl.title || '').toLowerCase().includes(nameLower))
+                        .filter(pl => !namesMatch(businessName, pl.title || ''))
                         .slice(0, 5)
                         .map((pl, idx) => ({ name: pl.title, rating: pl.rating || null, rank: idx + 1 }));
                     return { lat: p.lat, lng: p.lng, rank, competitors, totalFound: places.length };
