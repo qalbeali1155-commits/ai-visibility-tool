@@ -316,21 +316,26 @@ app.post('/api/sentiment', async (req, res) => {
         }
         const prompt = `You are a brand reputation and AEO expert. Analyze brand sentiment for "${domain}" from real Google snippets:\n${snippets}
 
+CRITICAL RULES:
+- This analysis must be unique to "${domain}" based on the actual snippets above — not generic reputation advice that could apply to any business.
+- Every issue and tip must reference a specific phrase, review comment, or detail visible in the snippets above.
+- Do NOT use generic filler like "improve customer service" or "increase online presence" unless tied directly to something specific found in the snippets.
+
 Respond in this EXACT format:
 SENTIMENT: [Positive/Neutral/Negative]
 SENTIMENT SCORE: [0-100]%
 BRAND WORDS: [word1, word2, word3, word4, word5]
-BRAND DESCRIPTION: [2 lines]
+BRAND DESCRIPTION: [2 lines, referencing specific details from the snippets]
 
 KEY ISSUES:
-1. [specific reputation weakness or gap found]
-2. [specific reputation weakness or gap]
-3. [specific reputation weakness or gap]
+1. [specific reputation weakness, quoting or referencing a specific snippet detail]
+2. [specific reputation weakness, quoting or referencing a specific snippet detail]
+3. [specific reputation weakness, quoting or referencing a specific snippet detail]
 
 IMPROVEMENT TIPS:
-1. [specific, actionable fix tied to the issues above]
-2. [specific, actionable fix]
-3. [specific, actionable fix]`;
+1. [specific, actionable fix tied to issue #1 above]
+2. [specific, actionable fix tied to issue #2 above]
+3. [specific, actionable fix tied to issue #3 above]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -353,18 +358,23 @@ app.post('/api/whynotranking', async (req, res) => {
         const prompt = `You are an SEO/AEO gap-analysis expert. Analyze why "${domain}" is not ranking for "${keyword}".
 Top Google Results:\n${top}
 
+CRITICAL RULES:
+- This analysis must be unique to "${domain}" and "${keyword}" — not generic SEO advice that could apply to any site.
+- Every issue and fix must reference a specific URL, title, or snippet detail from the results above and explain what that top-ranking page does that "${domain}" likely doesn't.
+- Do NOT use generic filler like "improve content quality" or "build backlinks" unless tied directly to a named competitor from the results.
+
 Respond in this EXACT format:
 RANKING STATUS: [Not Ranking/Partially Ranking/Ranking]
 
 KEY ISSUES:
-1. [specific reason]
-2. [specific reason]
-3. [specific reason]
+1. [specific reason, naming a competitor URL/title from the results as evidence]
+2. [specific reason, naming a competitor URL/title from the results as evidence]
+3. [specific reason, naming a competitor URL/title from the results as evidence]
 
 HOW TO IMPROVE VISIBILITY:
-1. [specific, actionable fix]
-2. [specific, actionable fix]
-3. [specific, actionable fix]
+1. [specific, actionable fix tied to issue #1]
+2. [specific, actionable fix tied to issue #2]
+3. [specific, actionable fix tied to issue #3]
 4. [specific, actionable fix]
 
 PRIORITY ACTION: [single most important action to take first]
@@ -392,25 +402,30 @@ app.post('/api/local', async (req, res) => {
         const prompt = `You are a Local SEO/AEO expert. Analyze local AI visibility for "${domain}" in "${city}" for "${keyword}".
 Real Local Google Results:\n${places}
 
+CRITICAL RULES:
+- This analysis must be unique to "${domain}" in "${city}" — not generic local SEO advice that could apply to any business.
+- Every issue and tip must reference a specific competitor name, their rating, or a detail from the local results above.
+- Do NOT use generic filler like "get more reviews" unless tied to a specific comparison (e.g. "Competitor X has 150 reviews vs your presumed lower count").
+
 Respond in this EXACT format:
 LOCAL VISIBILITY STATUS: [High/Medium/Low]
 LOCAL SCORE: [0-100]%
 TOP LOCAL COMPETITORS:
-1. [competitor] - [reason]
-2. [competitor] - [reason]
-3. [competitor] - [reason]
+1. [competitor] - [reason, referencing their actual rating/details]
+2. [competitor] - [reason, referencing their actual rating/details]
+3. [competitor] - [reason, referencing their actual rating/details]
 
 KEY ISSUES:
-1. [specific local visibility weakness]
-2. [specific local visibility weakness]
-3. [specific local visibility weakness]
+1. [specific local visibility weakness, naming a real competitor as comparison]
+2. [specific local visibility weakness, naming a real competitor as comparison]
+3. [specific local visibility weakness, naming a real competitor as comparison]
 
 LOCAL SEO TIPS:
-1. [specific, actionable fix]
-2. [specific, actionable fix]
-3. [specific, actionable fix]
+1. [specific, actionable fix tied to issue #1]
+2. [specific, actionable fix tied to issue #2]
+3. [specific, actionable fix tied to issue #3]
 
-LOCAL INSIGHT: [2 lines]`;
+LOCAL INSIGHT: [2 lines referencing specific competitors from the results]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -433,26 +448,31 @@ app.post('/api/citation', async (req, res) => {
         const prompt = `You are an authority/citation-building AEO expert. Analyze citation authority for "${domain}" regarding "${keyword}".
 Real Google Data:\n${results}
 
+CRITICAL RULES:
+- This analysis must be unique to "${domain}" and "${keyword}" — not generic citation-building advice that could apply to any site.
+- Every issue and fix must reference a specific URL, source, or snippet detail from the results above.
+- Do NOT use generic filler like "publish more content" or "get featured in publications" unless tied to a specific source/gap visible in the results.
+
 Respond in this EXACT format:
 CITATION SCORE: [0-100]%
 CITATION FREQUENCY: [Never/Rarely/Sometimes/Often/Frequently]
 CITATION STRENGTH: [Weak/Moderate/Strong/Authoritative]
 CITED FOR:
-1. [topic]
-2. [topic]
-3. [topic]
+1. [topic, referencing a specific source from the results]
+2. [topic, referencing a specific source from the results]
+3. [topic, referencing a specific source from the results]
 
 KEY ISSUES:
-1. [specific reason citation authority is weak]
-2. [specific reason]
-3. [specific reason]
+1. [specific reason citation authority is weak, naming a specific source/gap from the results]
+2. [specific reason, naming a specific source/gap from the results]
+3. [specific reason, naming a specific source/gap from the results]
 
 HOW TO IMPROVE CITATIONS:
-1. [specific, actionable fix]
-2. [specific, actionable fix]
-3. [specific, actionable fix]
+1. [specific, actionable fix tied to issue #1]
+2. [specific, actionable fix tied to issue #2]
+3. [specific, actionable fix tied to issue #3]
 
-CITATION INSIGHT: [2 lines]`;
+CITATION INSIGHT: [2 lines referencing specific sources from the results]`;
         const ai_response = await callGroq(prompt);
         res.json({ ai_response });
     } catch (error) { res.status(500).json({ error: error.message }); }
