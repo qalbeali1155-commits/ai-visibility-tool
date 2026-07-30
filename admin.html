@@ -32,6 +32,8 @@ td{padding:12px 16px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 select,input[type=number]{padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;}
 .save-btn{background:#065f46;color:white;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
 .save-btn:hover{background:#047857;}
+.del-btn{background:#fee2e2;color:#dc2626;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;}
+.del-btn:hover{background:#fecaca;}
 .admin-badge{background:#fef9c3;color:#a16207;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-left:6px;}
 .usage-cell{font-weight:700;}
 .loading-msg,.denied-msg{text-align:center;padding:60px 20px;color:#64748b;}
@@ -94,7 +96,10 @@ function renderTable(users){
           '<option value="paid"' + (u.plan==='paid'?' selected':'') + '>Paid (Unlimited)</option>' +
         '</select>' +
       '</td>' +
-      '<td><button class="save-btn" onclick="saveUser(\'' + u.user_id + '\', ' + i + ')">Save</button></td>' +
+      '<td>' +
+        '<button class="save-btn" onclick="saveUser(\'' + u.user_id + '\', ' + i + ')">Save</button>' +
+        (u.is_admin ? '' : '<button class="del-btn" onclick="removeUser(\'' + u.user_id + '\', \'' + u.email + '\')" title="Remove user"><i class="fa-solid fa-trash"></i></button>') +
+      '</td>' +
       '</tr>';
   }).join('');
 
@@ -118,6 +123,23 @@ async function saveUser(userId, idx){
       loadUsers();
     } else {
       alert('Could not update user');
+    }
+  }catch(e){ alert('Error: ' + e.message); }
+}
+
+async function removeUser(userId, email){
+  if(!confirm('Permanently remove ' + email + '? This deletes their account and cannot be undone.')) return;
+  const token = await getToken();
+  try{
+    const res = await fetch('/api/admin/users/' + userId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if(res.ok){
+      loadUsers();
+    } else {
+      alert(data.error || 'Could not remove user');
     }
   }catch(e){ alert('Error: ' + e.message); }
 }

@@ -68,6 +68,29 @@ async function enforceAccess(req, res) {
   return user;
 }
 
+const disposableDomains = require('disposable-email-domains');
+const disposableDomainSet = new Set(disposableDomains.map(d => d.toLowerCase()));
+
+async function isDisposableEmail(email) {
+    if (!email || typeof email !== 'string' || !email.includes('@')) return false;
+    const domain = email.trim().toLowerCase().split('@')[1];
+    // Fast static list check first (instant, no network call)
+    if (disposableDomainSet.has(domain)) return true;
+    // Live check against a continuously-updated list — catches new/rotating
+    // domains (e.g. temp-mail.org spins up thousands of random-looking domains
+    // that a static npm package list can't keep up with).
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const r = await fetch(`https://disposable.debounce.io/?email=${encodeURIComponent(email)}`, { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await r.json();
+        return data.disposable === 'true' || data.disposable === true;
+    } catch (e) {
+        return false; // fail open if the live check is unreachable — don't block real signups over a network hiccup
+    }
+}
+
 const app = express();
 
 // Security headers. CSP is left off because this app relies on inline <script>/<style>
@@ -242,6 +265,15 @@ app.get('/app.html', (req, res) => {
 });
 
 app.use(express.static(__dirname));
+
+// Public: check if an email is from a known disposable/temp-mail provider.
+// Called from the signup form BEFORE Supabase creates the account.
+app.post('/api/check-disposable-email', async (req, res) => {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') return res.status(400).json({ error: 'Email required' });
+    const disposable = await isDisposableEmail(email);
+    res.json({ disposable });
+});
 
 // 1. AI Visibility
 app.post('/api/visibility', async (req, res) => {
@@ -487,8 +519,6 @@ async function geocodeAddress(address) {
     return null;
 }
 
-// 5b. Business Search (autocomplete for GMB Geo-Grid tool)
-// Does not consume daily quota - it's just a lookup, not a full report.
 app.post('/api/business-search', async (req, res) => {
     const user = await getUserFromToken(req);
     if (!user) return res.status(401).json({ error: 'Not logged in' });
@@ -945,6 +975,24 @@ app.post('/api/admin/update-user', async (req, res) => {
   else if (daily_limit !== undefined) { updates.daily_limit = parseInt(daily_limit); }
   const { error } = await supabaseAdmin.from('user_access').update(updates).eq('user_id', target_user_id);
   if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
+// Admin: permanently delete a user (removes both their auth account and access record)
+app.delete('/api/admin/users/:user_id', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Not logged in' });
+  const access = await getOrCreateAccess(user.id, user.email);
+  if (!access.is_admin) return res.status(403).json({ error: 'Admin access only' });
+  const targetId = req.params.user_id;
+  if (targetId === user.id) return res.status(400).json({ error: "You can't delete your own admin account." });
+
+  const { error: delAccessErr } = await supabaseAdmin.from('user_access').delete().eq('user_id', targetId);
+  if (delAccessErr) return res.status(500).json({ error: delAccessErr.message });
+
+  const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(targetId);
+  if (delAuthErr) return res.status(500).json({ error: delAuthErr.message });
+
   res.json({ success: true });
 });
 

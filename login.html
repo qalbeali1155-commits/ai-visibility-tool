@@ -179,7 +179,25 @@ async function signup() {
   if (password.length < 6) { showMsg('Password must be at least 6 characters', 'error'); return; }
 
   const btn = document.getElementById('signupBtn');
-  btn.disabled = true; btn.textContent = 'Creating account...';
+  btn.disabled = true; btn.textContent = 'Checking email...';
+
+  try {
+    const checkRes = await fetch('/api/check-disposable-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const checkData = await checkRes.json();
+    if (checkData.disposable) {
+      showMsg('Temporary/disposable email addresses are not allowed. Please use a permanent email (Gmail, Outlook, etc.)', 'error');
+      btn.disabled = false; btn.textContent = 'Sign Up';
+      return;
+    }
+  } catch (e) {
+    // If the check itself fails, don't block signup entirely — fail open.
+  }
+
+  btn.textContent = 'Creating account...';
 
   const { data, error } = await supabaseClient.auth.signUp({
     email, password,
